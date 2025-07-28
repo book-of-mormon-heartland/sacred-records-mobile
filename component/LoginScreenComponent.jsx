@@ -29,6 +29,8 @@ const LoginScreenComponent = ({  }) => {
         title="Sign Out"
         color="#841584"
       />
+      <Text style={styles.themeText}>Login Message: {message}</Text>
+      
       <Text style={styles.themeText}>Theme: {theme}</Text>
       <Button
         onPress={ toggleTheme }

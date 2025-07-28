@@ -7,7 +7,7 @@ export const GoogleAuthContext = createContext("");
 export const GoogleAuthProvider = ({ children }) => {
 
 
-    const [message, setMessage] = useState("My message");
+    const [message, setMessage] = useState("Not Signed In");
 
 
     const signIn = async () => {
@@ -17,10 +17,10 @@ export const GoogleAuthProvider = ({ children }) => {
             const response = await GoogleSignin.signIn();
             if(isSuccessResponse(response)){
                 console.log("Google Sign-In Success: ", response.data );
-                setMessage( response.data );
+                setMessage( "Signed In" );
             } else {
                 console.log("NOT Successful: ", response.data );
-                setMessage( response.data );
+                setMessage( "Not Successful");
             }
         } catch (error) {
             console.log("Error: ", error );
@@ -43,7 +43,9 @@ export const GoogleAuthProvider = ({ children }) => {
         
         try {
 		  await GoogleSignin.signOut();
-		  // Perform additional cleanup and logout operations.
+          setMessage('Signed Out'); 
+
+          // Perform additional cleanup and logout operations.
         } catch (error) {
             console.log('Google Sign-Out Error: ', error);
         }
