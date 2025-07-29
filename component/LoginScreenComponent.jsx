@@ -6,11 +6,11 @@ import { GoogleAuthContext, GoogleAuthProvider } from '.././context/GoogleAuthCo
 import { GoogleSigninButton, GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 
-const LoginScreenComponent = ({  }) => {
+const LoginScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage } = useContext(GoogleAuthContext);
+  const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
   
   const showMessage= () => {
      Alert.alert(message);
@@ -32,11 +32,19 @@ const LoginScreenComponent = ({  }) => {
       <Text style={styles.themeText}>Login Message: {message}</Text>
       
       <Text style={styles.themeText}>Theme: {theme}</Text>
+      
+      <Text style={styles.themeText}>UserToken: {userToken }</Text>
       <Button
         onPress={ toggleTheme }
         title="Toggle Theme"
         color="#841584"
       />
+      <Button
+            title="Go to App"
+            onPress={() =>
+              navigation.navigate('Home', { })
+            }
+          />
     </View>
   );
 };

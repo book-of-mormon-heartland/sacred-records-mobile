@@ -33,3 +33,8 @@ There is an sh1 code here that is used in the google console for the creation of
 version of the google client.  It should already be a match.  But interesting to see that if
 it does not work, that could be a reason.
 
+Libraries used in the application:
+
+
+npm i @react-native-google-signin/google-signin
+npm install react-native-keychain 
