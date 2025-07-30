@@ -6,7 +6,7 @@ import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 
 
-const LoginScreenComponent = ( {navigation} ) => {
+const BookmarkScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
@@ -14,14 +14,7 @@ const LoginScreenComponent = ( {navigation} ) => {
   
   return (
     <View style={styles.container}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>Welcome to Sacred Records</Text>
-      <Image source={require('.././assets/sacred-records-logo-250x250.png')} style={styles.loginScreenImage} />
-      <GoogleSigninButton
-        size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Dark}
-        onPress={ signIn }
-        disabled={false}
-      />
+      <Text style={styles.headerTitle}>Bookmarks</Text>
     </View>
   );
 };
@@ -37,12 +30,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loginScreenImage: {
-    padding: 20,
-    margin: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
 });
 
-export default LoginScreenComponent;
+export default BookmarkScreenComponent;

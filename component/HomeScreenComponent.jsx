@@ -4,6 +4,7 @@ var Environment = require('.././context/environment.ts');
 import { ThemeContext, ThemeProvider } from '.././context/ThemeContext';
 import { GoogleAuthContext, GoogleAuthProvider } from '.././context/GoogleAuthContext';
 import { GoogleSigninButton, GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import LoginScreenComponent from './LoginScreenComponent.jsx';
 
 
 const HomeScreenComponent = ( {navigation} ) => {
@@ -16,39 +17,29 @@ const HomeScreenComponent = ( {navigation} ) => {
 
     if(userToken?.length>0) {
        return (
-            <View>
+            <View style={styles.container}>
                 <Text style={styles.themeText}>Login Message: {message}</Text>      
                 <Text style={styles.themeText}>Theme: {theme}</Text>
             </View>
         );
     } else {
         return (
-            <View>
-                <GoogleSigninButton
-                    size={GoogleSigninButton.Size.Wide}
-                    color={GoogleSigninButton.Color.Dark}
-                    onPress={ signIn }
-                    disabled={false}
-                />
-                <Button
-                    onPress={ signOut }
-                    title="Sign Out"
-                    color="#841584"
-                />
-                <Text style={styles.themeText}>Login Message: {message}</Text>
-                
-                <Text style={styles.themeText}>Theme: {theme}</Text>
-                <Button
-                    onPress={ toggleTheme }
-                    title="Toggle Theme"
-                    color="#841584"
-                />
-            </View>
+           <LoginScreenComponent />
         );
     }
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    color: "#000",
+    padding: 10,
+    borderRadius: 8,
+    margin: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
