@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Button } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
@@ -14,7 +14,8 @@ const ProfileScreenComponent = ( {navigation} ) => {
   
   return (
     <View style={styles.container}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>Profile</Text>
+      <Text style={styles.headerTitle}>Profile</Text>
+      <Button title="Sign Out of Sacred Records" onPress={signOut} />
     </View>
   );
 };
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  
+
 });
 
 export default ProfileScreenComponent;
