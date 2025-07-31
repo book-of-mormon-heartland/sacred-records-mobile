@@ -8,8 +8,10 @@ import ProfileScreenComponent from './ProfileScreenComponent'; // Adjust path as
 import HomeScreenComponent from './HomeScreenComponent'; // Adjust path as needed
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faHome, faBookmark, faUser } from '@fortawesome/free-solid-svg-icons'; // Example icon
-
-
+import Feather from 'react-native-vector-icons/Feather';
+import { Home } from "react-native-feather";
+import { Bookmark } from "react-native-feather";
+import { User } from "react-native-feather";
 
 const Tab = createBottomTabNavigator();
 
@@ -29,7 +31,7 @@ const TabsComponent = ( ) => {
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <FontAwesomeIcon icon={faHome} size={16} />
+                                <Home  stroke="black" fill="#fff" width={26} height={26}/>
                             </View>
                         )
                     }}
@@ -42,7 +44,7 @@ const TabsComponent = ( ) => {
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <FontAwesomeIcon icon={faBookmark} size={16} color="black" />
+                                <Bookmark  stroke="black" fill="#fff" width={26} height={26}/>
                             </View>
                         )
                     }}
@@ -56,7 +58,7 @@ const TabsComponent = ( ) => {
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <FontAwesomeIcon icon={faUser} size={16} color="black" />
+                                <User stroke="black" fill="#fff" width={26} height={26}/>
                             </View>
                         )
                     }}
@@ -74,7 +76,7 @@ const TabsComponent = ( ) => {
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <FontAwesomeIcon icon={faHome} size={16} />
+                                <Home  stroke="black" fill="#fff" width={26} height={26} />
                             </View>
                         )
                     }}

@@ -1,17 +1,18 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Button } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
-
+import { Platform } from 'react-native';
 
 const LoginScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
-  
+  const { signIn, signOut, message, setMessage, userToken, fakeSignIn } = useContext(GoogleAuthContext);
+  const isIOS = ( Platform.OS === 'ios' );
+
   return (
     <View style={styles.container}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>Welcome to Sacred Records</Text>
@@ -22,6 +23,7 @@ const LoginScreenComponent = ( {navigation} ) => {
         onPress={ signIn }
         disabled={false}
       />
+      { isIOS && (process.env.ENVIRONMENT=='development') ? <Button title="Test Signin" onPress={fakeSignIn} />: console.log('not ios') }
     </View>
   );
 };

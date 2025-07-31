@@ -37,4 +37,10 @@ Libraries used in the application:
 
 
 npm i @react-native-google-signin/google-signin
-npm install react-native-keychain 
+
+npm install @react-navigation/native @react-navigation/native-stack
+npm install react-native-screens react-native-safe-area-context
+npm install @react-navigation/elements
+npm install @react-navigation/bottom-tabs
+npm i --save @fortawesome/fontawesome-svg-core @fortawesome/react-native-fontawesome@latest react-native-svg
+npm i --save @fortawesome/free-solid-svg-icons

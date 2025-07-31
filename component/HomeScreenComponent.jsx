@@ -13,8 +13,7 @@ const HomeScreenComponent = ( {navigation} ) => {
     const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
     const { signIn, signOut, message, setMessage } = useContext(GoogleAuthContext);
     const { userToken, userProfile  } = useContext(GoogleAuthContext);
-    console.log("Token length: " + userToken);
-
+    
     if(userToken?.length>0) {
        return (
             <View style={styles.container}>
