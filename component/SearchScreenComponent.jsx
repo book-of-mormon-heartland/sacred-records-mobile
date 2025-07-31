@@ -1,23 +1,19 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
-import { Platform } from 'react-native';
 
 
-const ProfileScreenComponent = ( {navigation} ) => {
+const SearchScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken, fakeSignOut } = useContext(GoogleAuthContext);
-  const isIOS = ( Platform.OS === 'ios' );
-
+  const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
+  
   return (
     <View style={styles.container}>
-      
-      <Button title="Sign Out of Sacred Records" onPress={signOut} />
-      { isIOS && (process.env.ENVIRONMENT=='development') ? <Button title="Test Sign Out" onPress={fakeSignOut} />: console.log('not ios') }
+      <Text style={styles.text}>Coming Soon</Text>
     </View>
   );
 };
@@ -43,4 +39,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreenComponent;
+export default SearchScreenComponent;

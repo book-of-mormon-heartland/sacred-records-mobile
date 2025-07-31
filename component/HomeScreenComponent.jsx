@@ -5,31 +5,29 @@ import { ThemeContext, ThemeProvider } from '.././context/ThemeContext';
 import { GoogleAuthContext, GoogleAuthProvider } from '.././context/GoogleAuthContext';
 import { GoogleSigninButton, GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import LoginScreenComponent from './LoginScreenComponent.jsx';
+import LibraryScreenComponent from './LibraryScreenComponent.jsx';
 
 
 const HomeScreenComponent = ( {navigation} ) => {
 
-    //const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
-    const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-    const { signIn, signOut, message, setMessage } = useContext(GoogleAuthContext);
-    const { userToken, userProfile  } = useContext(GoogleAuthContext);
-    
-    if(userToken?.length>0) {
-       return (
-            <View style={styles.container}>
-                <Text style={styles.themeText}>Login Message: {message}</Text>      
-                <Text style={styles.themeText}>Theme: {theme}</Text>
-            </View>
-        );
-    } else {
-        return (
-           <LoginScreenComponent />
-        );
-    }
+  //const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
+  const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
+  const { signIn, signOut, message, setMessage } = useContext(GoogleAuthContext);
+  const { userToken, userProfile  } = useContext(GoogleAuthContext);
+
+  if(userToken?.length>0) {
+    return (
+      <LibraryScreenComponent />
+    );
+  } else {
+    return (
+      <LoginScreenComponent />
+    );
+  }
 };
 
 const styles = StyleSheet.create({
-  container: {
+  loginContainer: {
     flex: 1,
     backgroundColor: "#fff",
     color: "#000",
@@ -39,17 +37,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    color: "#000",
+    padding: 10,
+    borderRadius: 8,
+    margin: 10,
+    justifyContent: 'top',
+    alignItems: 'center',
+  },
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  themeText: {
+  text: {
     fontSize: 14,
-    color: '#666',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
+
+
 });
 
 export default HomeScreenComponent;

@@ -6,7 +6,7 @@ import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 
 
-const ProfileScreenComponent = ( {navigation} ) => {
+const LibraryScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
@@ -15,9 +15,9 @@ const ProfileScreenComponent = ( {navigation} ) => {
 
   return (
     <View style={styles.container}>
-      
-      <Button title="Sign Out of Sacred Records" onPress={signOut} />
-      { isIOS && (process.env.ENVIRONMENT=='development') ? <Button title="Test Sign Out" onPress={fakeSignOut} />: console.log('not ios') }
+      <Text>Library Coming Soon</Text> 
+        <Text style={styles.text}>Login Message: {message}</Text>      
+        <Text style={styles.text}>Theme: {theme}</Text>
     </View>
   );
 };
@@ -43,4 +43,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreenComponent;
+export default LibraryScreenComponent;

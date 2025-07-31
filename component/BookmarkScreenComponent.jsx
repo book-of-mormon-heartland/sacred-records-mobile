@@ -14,7 +14,7 @@ const BookmarkScreenComponent = ( {navigation} ) => {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>Bookmarks</Text>
+      <Text style={styles.text}>Coming Soon</Text>
     </View>
   );
 };
@@ -27,13 +27,16 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     margin: 10,
-    justifyContent: 'center',
+    justifyContent: 'top',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  text: {
+    fontSize: 14,
   },
 });
 

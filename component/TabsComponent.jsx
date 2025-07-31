@@ -6,12 +6,11 @@ import { GoogleAuthContext } from ".././context/GoogleAuthContext";
 import BookmarkScreenComponent from './BookmarkScreenComponent'; // Adjust path as needed
 import ProfileScreenComponent from './ProfileScreenComponent'; // Adjust path as needed
 import HomeScreenComponent from './HomeScreenComponent'; // Adjust path as needed
+import SearchScreenComponent from './SearchScreenComponent'; // Adjust path as needed
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faHome, faBookmark, faUser } from '@fortawesome/free-solid-svg-icons'; // Example icon
 import Feather from 'react-native-vector-icons/Feather';
-import { Home } from "react-native-feather";
-import { Bookmark } from "react-native-feather";
-import { User } from "react-native-feather";
+import { BookOpen, Home, Bookmark, User, Search } from "react-native-feather";
 
 const Tab = createBottomTabNavigator();
 
@@ -23,15 +22,16 @@ const TabsComponent = ( ) => {
     if (userToken?.length>0) {
         return (
             <Tab.Navigator>
-                <Tab.Screen name="Home" component={HomeScreenComponent} 
+                <Tab.Screen name="Library" component={HomeScreenComponent} 
                     options = {{
                         headerShown: true,
+                        headerTitleAlign: 'center',
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <Home  stroke="black" fill="#fff" width={26} height={26}/>
+                                <BookOpen  stroke="black" fill="#fff" width={22} height={22}/>
                             </View>
                         )
                     }}
@@ -39,26 +39,43 @@ const TabsComponent = ( ) => {
                 <Tab.Screen name="Bookmark" component={BookmarkScreenComponent} 
                     options = {{
                         headerShown: true,
+                        headerTitleAlign: 'center',
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <Bookmark  stroke="black" fill="#fff" width={26} height={26}/>
+                                <Bookmark  stroke="black" fill="#fff" width={22} height={22}/>
                             </View>
                         )
                     }}
                 />
+                <Tab.Screen name="Search" component={SearchScreenComponent} 
+                    options = {{
+                        headerShown: true,
+                        headerTitleAlign: 'center',
+                        tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
+                        tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
+                        tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarIcon: ({focused}) => (
+                            <View>
+                                <Search  stroke="black" fill="#fff" width={22} height={22}/>
+                            </View>
+                        )
+                    }}
+                />
+
                 <Tab.Screen name="Profile" component={ProfileScreenComponent} 
                     options = {{
                         disabled: userToken?.length>0 ? true : false,
+                        headerTitleAlign: 'center',
                         headerShown: true,
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <User stroke="black" fill="#fff" width={26} height={26}/>
+                                <User stroke="black" fill="#fff" width={22} height={22}/>
                             </View>
                         )
                     }}
@@ -76,7 +93,7 @@ const TabsComponent = ( ) => {
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <Home  stroke="black" fill="#fff" width={26} height={26} />
+                                <Home  stroke="black" fill="#fff" width={22} height={22} />
                             </View>
                         )
                     }}

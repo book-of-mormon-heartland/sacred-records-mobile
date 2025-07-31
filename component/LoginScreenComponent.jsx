@@ -14,7 +14,7 @@ const LoginScreenComponent = ( {navigation} ) => {
   const isIOS = ( Platform.OS === 'ios' );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.loginContainer}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>Welcome to Sacred Records</Text>
       <Image source={require('.././assets/sacred-records-logo-250x250.png')} style={styles.loginScreenImage} />
       <GoogleSigninButton
@@ -29,7 +29,7 @@ const LoginScreenComponent = ( {navigation} ) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  loginContainer: {
     flex: 1,
     backgroundColor: "#fff",
     color: "#000",
