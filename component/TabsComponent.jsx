@@ -7,9 +7,7 @@ import BookmarkScreenComponent from './BookmarkScreenComponent'; // Adjust path 
 import ProfileScreenComponent from './ProfileScreenComponent'; // Adjust path as needed
 import HomeScreenComponent from './HomeScreenComponent'; // Adjust path as needed
 import SearchScreenComponent from './SearchScreenComponent'; // Adjust path as needed
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faBookmark, faUser } from '@fortawesome/free-solid-svg-icons'; // Example icon
-import Feather from 'react-native-vector-icons/Feather';
+import BookStackNavigatorComponent from './BookStackNavigatorComponent';
 import { BookOpen, Home, Bookmark, User, Search } from "react-native-feather";
 
 const Tab = createBottomTabNavigator();
@@ -19,12 +17,16 @@ const TabsComponent = ( ) => {
     const { theme, setTheme } = useContext(ThemeContext);
     const { userToken, userProfile  } = useContext(GoogleAuthContext);
     
+/*
+<Tab.Screen name="Library-Main" component={BookStackNavigatorComponent} 
+*/
+
     if (userToken?.length>0) {
         return (
             <Tab.Navigator>
-                <Tab.Screen name="Library" component={HomeScreenComponent} 
+                <Tab.Screen name="Library-Main" component={BookStackNavigatorComponent}
                     options = {{
-                        headerShown: true,
+                        headerShown: false,
                         headerTitleAlign: 'center',
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",

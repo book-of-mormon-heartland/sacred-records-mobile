@@ -44,3 +44,10 @@ npm install @react-navigation/elements
 npm install @react-navigation/bottom-tabs
 npm i --save @fortawesome/fontawesome-svg-core @fortawesome/react-native-fontawesome@latest react-native-svg
 npm i --save @fortawesome/free-solid-svg-icons
+
+Book of Mormon
+3b8dac2b-7349-4536-a8ec-d57f8a7f3bde
+
+Book of Mormon Introductions
+a0492c07-165e-4d5d-b6cb-5459a312f187
+

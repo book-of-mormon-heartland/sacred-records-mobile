@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
@@ -10,16 +10,79 @@ const LibraryScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken, fakeSignOut } = useContext(GoogleAuthContext);
+  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const isIOS = ( Platform.OS === 'ios' );
+  const  apiEndpoint = Environment.NODE_SERVER_URL + "/rest/GET/Books"; // Example endpoint
 
-  return (
-    <View style={styles.container}>
-      <Text>Library Coming Soon</Text> 
-        <Text style={styles.text}>Login Message: {message}</Text>      
-        <Text style={styles.text}>Theme: {theme}</Text>
+  const renderItem = ({ item }) => (
+    <View style={styles.itemContainer}>
+      <Image source={{ uri: item.thumbnail }} style={styles.image} />
+      <Text style={styles.text}>{item.title}</Text>
     </View>
   );
+
+  useEffect(() => {
+    console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
+    const fetchData = async () => {
+      try {
+        const response = await fetch(apiEndpoint, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${jwtToken}`
+          }
+        });
+        if (!response.ok) {
+          console.log("response was not okay")
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+ 
+        console.log("we got results");
+        const json = await response.json();
+        console.log(json);
+        setData(json);
+      } catch (error) {
+        console.log("Error");
+        console.log(error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []); // Empty dependency array means this runs once on mount
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading data...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Error: {error.message}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, padding: 20 }}>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()} // Adjust keyExtractor based on your data structure        numColumns={2}
+        numColumns={2}
+        contentContainerStyle={styles.listContainer}
+      />
+    </View>
+  );
+    
 };
 
 const styles = StyleSheet.create({
@@ -33,13 +96,24 @@ const styles = StyleSheet.create({
     justifyContent: 'top',
     alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
+listContainer: {
+    paddingHorizontal: 5,
+  },
+  itemContainer: {
+    width: 150,
+    height: 150,
+    padding: 5,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%', // Take up the full width of the item container
+    aspectRatio: 1, // Maintain a square aspect ratio for thumbnails
+    borderRadius: 8,
   },
   text: {
-    fontSize: 14,
+    marginTop: 5,
+    textAlign: 'center',
   },
 });
 

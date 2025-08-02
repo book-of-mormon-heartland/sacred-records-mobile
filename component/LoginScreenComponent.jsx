@@ -16,7 +16,7 @@ const LoginScreenComponent = ( {navigation} ) => {
   return (
     <View style={styles.loginContainer}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>Welcome to Sacred Records</Text>
-      <Image source={require('.././assets/sacred-records-logo-250x250.png')} style={styles.loginScreenImage} />
+      <Image source={require('.././assets/sacred-records-logo-200x200.png')} style={styles.loginScreenImage} />
       <GoogleSigninButton
         size={GoogleSigninButton.Size.Wide}
         color={GoogleSigninButton.Color.Dark}
