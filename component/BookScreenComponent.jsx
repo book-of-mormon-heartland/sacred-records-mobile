@@ -6,15 +6,16 @@ import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 
 
-const BookScreenComponent = ( {navigation} ) => {
+const BookScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
   const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
-  
+  const { id } = route.params;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Coming Soon</Text>
+    <View>
+      <Text>Book ID: {id}</Text>
     </View>
   );
 };

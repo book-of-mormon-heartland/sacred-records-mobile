@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
+import { useNavigation, navigate } from '@react-navigation/native';
 
 
-const LibraryScreenComponent = ( {navigation} ) => {
+const LibraryScreenComponent = ( ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
@@ -16,13 +17,26 @@ const LibraryScreenComponent = ( {navigation} ) => {
   const [error, setError] = useState(null);
   const isIOS = ( Platform.OS === 'ios' );
   const  apiEndpoint = Environment.NODE_SERVER_URL + "/rest/GET/Books"; // Example endpoint
+  const navigation = useNavigation();
 
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <Image source={{ uri: item.thumbnail }} style={styles.image} />
-      <Text style={styles.text}>{item.title}</Text>
-    </View>
-  );
+
+
+  const handlePress = (id) => {    
+    navigation.navigate('Book', { 
+      id: id,
+    });
+  };
+
+  const renderItem = ({ item }) => {
+    return(
+      <View style={styles.itemContainer}>
+        <TouchableOpacity onPress={() => handlePress(item.id)}>
+        <Image source={{ uri: item.thumbnail }} style={styles.image} />
+        </TouchableOpacity>
+        <Text style={styles.text}>{item.title}</Text>
+      </View>
+    );
+  }
 
   useEffect(() => {
     console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
@@ -53,6 +67,8 @@ const LibraryScreenComponent = ( {navigation} ) => {
     };
     fetchData();
   }, []); // Empty dependency array means this runs once on mount
+
+
 
   if (loading) {
     return (

@@ -10,7 +10,7 @@ const BookStackNavigatorComponent = () => {
   return (
     <BooksStack.Navigator>
       <BooksStack.Screen name="Library" component={HomeScreenComponent} />
-      <BooksStack.Screen name="Books" component={BookScreenComponent} />
+      <BooksStack.Screen name="Book" component={BookScreenComponent} />
       <BooksStack.Screen name="Chapters" component={ChaptersScreenComponent} />
       <BooksStack.Screen name="ChapterContent" component={ChapterContentScreenComponent} />
     </BooksStack.Navigator>
