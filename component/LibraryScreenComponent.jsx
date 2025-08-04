@@ -19,18 +19,25 @@ const LibraryScreenComponent = ( ) => {
   const  apiEndpoint = Environment.NODE_SERVER_URL + "/rest/GET/Books"; // Example endpoint
   const navigation = useNavigation();
 
+  const handlePress = (id, hasChildBooks, title) => {
+    if(hasChildBooks) {
+      navigation.navigate('Book', {
+        id: id,
+        title: title,
+      });
+    } else {
+      navigation.navigate('Chapters', {
+        id: id,
+        title: title,
+      });
+    }
 
-
-  const handlePress = (id) => {    
-    navigation.navigate('Book', { 
-      id: id,
-    });
   };
 
   const renderItem = ({ item }) => {
     return(
-      <View style={styles.itemContainer}>
-        <TouchableOpacity onPress={() => handlePress(item.id)}>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={() => handlePress(item.id, item.hasChildBooks, item.title)}>
         <Image source={{ uri: item.thumbnail }} style={styles.image} />
         </TouchableOpacity>
         <Text style={styles.text}>{item.title}</Text>
@@ -52,10 +59,7 @@ const LibraryScreenComponent = ( ) => {
           console.log("response was not okay")
           throw new Error(`HTTP error! status: ${response.status}`);
         }
- 
-        console.log("we got results");
         const json = await response.json();
-        console.log(json);
         setData(json);
       } catch (error) {
         console.log("Error");
@@ -72,7 +76,7 @@ const LibraryScreenComponent = ( ) => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.itemContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
         <Text>Loading data...</Text>
       </View>
@@ -81,19 +85,19 @@ const LibraryScreenComponent = ( ) => {
 
   if (error) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.container}>
         <Text>Error: {error.message}</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+    <View style={styles.container}>
       <FlatList
         data={data}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()} // Adjust keyExtractor based on your data structure        numColumns={2}
-        numColumns={2}
+        numColumns={3}
         contentContainerStyle={styles.listContainer}
       />
     </View>
@@ -109,22 +113,24 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     margin: 10,
+    paddingBottom: 0,
+    paddingTop: 10,
+    marginBottom: 10,
     justifyContent: 'top',
     alignItems: 'center',
   },
-listContainer: {
-    paddingHorizontal: 5,
+  listContainer: {
+    paddingHorizontal: 0,
+    width: 350,
+
   },
   itemContainer: {
-    width: 150,
-    height: 150,
-    padding: 5,
-    marginBottom: 10,
-    alignItems: 'center',
+
   },
   image: {
-    width: '100%', // Take up the full width of the item container
-    aspectRatio: 1, // Maintain a square aspect ratio for thumbnails
+    width: '80', // Take up the full width of the item container
+    height: '100', // Take up the full width of the item container
+    //aspectRatio: 1, // Maintain a square aspect ratio for thumbnails
     borderRadius: 8,
   },
   text: {
