@@ -21,14 +21,19 @@ const BookScreenComponent = ( {route} ) => {
   const { id } = route.params;
   const { title } = route.params;
 
-  const handlePress = () => {
-    console.log("handlePress")
+  const handlePress = (id, title) => {
+    console.log("this is id " + id)
+    navigation.navigate('Chapters', {
+        id: id,
+        title: title,
+    });
   };
+
 
   const renderItem = ({ item }) => {
     return(
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => handlePress(item.id)}>
+        <TouchableOpacity onPress={() => handlePress(item.id, item.thumbnailTitle)}>
         <Image source={{ uri: item.thumbnail }} style={styles.image} />
         </TouchableOpacity>
         <Text style={styles.text}>{item.thumbnailTitle}</Text>
