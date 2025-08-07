@@ -10,7 +10,7 @@ const LoginScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken, fakeSignIn } = useContext(GoogleAuthContext);
+  const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
   const isIOS = ( Platform.OS === 'ios' );
 
   return (
@@ -23,7 +23,6 @@ const LoginScreenComponent = ( {navigation} ) => {
         onPress={ signIn }
         disabled={false}
       />
-      { isIOS && (process.env.ENVIRONMENT=='development') ? <Button title="Test Signin" onPress={fakeSignIn} />: console.log('not ios') }
     </View>
   );
 };

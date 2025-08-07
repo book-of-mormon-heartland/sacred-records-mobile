@@ -15,9 +15,16 @@ const LibraryScreenComponent = ( ) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const isIOS = ( Platform.OS === 'ios' );
-  const  apiEndpoint = Environment.NODE_SERVER_URL + "/rest/GET/Books"; // Example endpoint
   const navigation = useNavigation();
+  const isIOS = ( Platform.OS === 'ios' );
+  let serverUrl = Environment.NODE_SERVER_URL;
+  if(isIOS) {
+      serverUrl = Environment.IOS_NODE_SERVER_URL;
+  }
+  const  apiEndpoint = serverUrl + "/rest/GET/Books"; // Example endpoint
+
+
+
 
   const handlePress = (id, hasChildBooks, title) => {
     if(hasChildBooks) {

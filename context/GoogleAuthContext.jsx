@@ -1,6 +1,7 @@
 import { createContext, useState } from  "react";
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
 var Environment = require('./environment.ts');
+import { Platform } from 'react-native';
 
 
 export const GoogleAuthContext = createContext("");
@@ -12,8 +13,11 @@ export const GoogleAuthProvider = ({ children }) => {
     const [userToken, setUserToken] = useState("");
     const [jwtToken, setJwtToken] = useState("");
     const [refreshToken, setRefreshToken] = useState("");
-    
-    const serverUrl = Environment.NODE_SERVER_URL;
+    const isIOS = ( Platform.OS === 'ios' );
+    let serverUrl = Environment.NODE_SERVER_URL;
+    if(isIOS) {
+        serverUrl = Environment.IOS_NODE_SERVER_URL;
+    }
 
 
     const signIn = async () => {
@@ -23,9 +27,8 @@ export const GoogleAuthProvider = ({ children }) => {
             const response = await GoogleSignin.signIn();
             if(isSuccessResponse(response)){
                 console.log("Google Sign-In Success: ", response.data );
-                setMessage("Logged In Successfully");
-                setUserProfile(response.data.user);
-                setUserToken(response.data.idToken);
+                let user = response.data.user;
+                let idToken = response.data.idToken;
 
                 // from here we make calls to server to authenticate to the rest server.
                 try {
@@ -34,7 +37,7 @@ export const GoogleAuthProvider = ({ children }) => {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ token: response.data.idToken, user: response.data.user }),
+                        body: JSON.stringify({ token: idToken, user: user }),
                     });
                     if (!postResponse.ok) {
                         throw new Error(`HTTP error! status: ${postResponse.status}`);
@@ -45,8 +48,9 @@ export const GoogleAuthProvider = ({ children }) => {
                     if(obj?.jwtToken) {
                         setJwtToken(obj.jwtToken || "");
                         setRefreshToken(obj.refreshToken || "");
-                        console.log("JWT Token Set: ", obj.jwtToken );
-                        console.log("Refresh Token Set: ", obj.refreshToken );
+                        setMessage("Logged In Successfully");
+                        setUserProfile(user);
+                        setUserToken(idToken);
                     } else {
                         console.log("No JWT Token returned from server.");
                     }
