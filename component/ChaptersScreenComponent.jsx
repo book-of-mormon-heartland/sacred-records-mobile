@@ -28,17 +28,17 @@ const ChapterScreenComponent = ( {route} ) => {
 
   console.log("Chapters Screen id is " + id);
 
-  const handlePress = () => {
-    console.log("handlePress")
-  };
 
   const renderItem = ({ item }) => {
     return(
       <TouchableOpacity
             style={styles.listItem}
-            onPress={() => {
+            onPress={( ) => {
               // Handle navigation to the chapter text
-              
+               navigation.navigate('ChapterContent', {
+                       id: item.id,
+                       title: item.title,
+                   });
             }}
           >
         <View style={styles.textContainer}>
@@ -89,7 +89,7 @@ const ChapterScreenComponent = ( {route} ) => {
 
   if (loading) {
     return (
-      <View style={styles.itemContainer}>
+      <View style={styles.container}>
         <ActivityIndicator size="large" color="#0000ff" />
         <Text>Loading data...</Text>
       </View>
