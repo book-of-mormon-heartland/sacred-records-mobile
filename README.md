@@ -35,7 +35,6 @@ it does not work, that could be a reason.
 
 Libraries used in the application:
 
-
 npm i @react-native-google-signin/google-signin
 
 npm install @react-navigation/native @react-navigation/native-stack
@@ -55,10 +54,19 @@ npm install @react-native-vector-icons/material-icons
 npm install react-native-vector-icons
 
 
+SCREEN Swipe
+npm install @react-navigation/native 
+npm install @react-navigation/native-stack 
+npm install react-native-gesture-handler
+npm install react-native-screens 
+npm install react-native-safe-area-context 
+cd ios 
+arch -x86_64 pod install
+cd ..
 
-Book of Mormon
-3b8dac2b-7349-4536-a8ec-d57f8a7f3bde
 
-Book of Mormon Introductions
-a0492c07-165e-4d5d-b6cb-5459a312f187
+npm install react-native-swipe-gesture-handler
+// bad press.  High CVE
 
+
+npm i -S react-native-swipe-gestures

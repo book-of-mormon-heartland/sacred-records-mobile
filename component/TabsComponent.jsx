@@ -24,7 +24,7 @@ const TabsComponent = ( ) => {
     if (userToken?.length>0) {
         return (
             <Tab.Navigator>
-                <Tab.Screen name="Library-Main" component={BookStackNavigatorComponent}
+                <Tab.Screen name="Library" component={BookStackNavigatorComponent}
                     options = {{
                         headerShown: false,
                         headerTitleAlign: 'center',

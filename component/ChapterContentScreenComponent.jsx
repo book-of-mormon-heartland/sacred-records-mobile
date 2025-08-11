@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
@@ -14,7 +14,6 @@ const ChapterContentScreenComponent = ( {route}) => {
   const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
   const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
   const { id } = route.params;
-  //const { title } = route.params;
   const navigation = useNavigation();
   const isIOS = ( Platform.OS === 'ios' );
   let serverUrl = Environment.NODE_SERVER_URL;
@@ -29,21 +28,8 @@ const ChapterContentScreenComponent = ( {route}) => {
   const [followingChapter, setFollowingChapter] = useState("");
   const [chapterId, setChapterId] = useState("");
 
-/*
-  const state = {
-      myText: 'I\'m ready to get swiped!',
-      gestureName: 'none',
-      backgroundColor: '#fff'
-    };
-*/
 
   useEffect(() => {
-    console.log("ContentScreenComponent: apiEndpoint=", apiEndpoint);
-
-    console.log("This is ChapterId");
-    console.log(chapterId);
-    console.log("This is id");
-    console.log(id);
     let myId = ""
     if(chapterId=="") {
       myId=id;
@@ -76,6 +62,9 @@ const ChapterContentScreenComponent = ( {route}) => {
         setPreviousChapter(myChapter.previousChapter);
         setFollowingChapter(myChapter.followingChapter);
         
+        navigation.setOptions({
+          title: myChapter.title,
+        });
 
         //setData(json);
       } catch (error) {
@@ -89,42 +78,40 @@ const ChapterContentScreenComponent = ( {route}) => {
     fetchData();
   }, [chapterId]); // Empty dependency array means this runs once on mount
 
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const onSwipeUp = (gestureState) => {
-    //state.myText="You Swiped Up!";
-  }
- 
-  const onSwipeDown = (gestureState) => {
-    //state.myText="You Swiped Down!";
-  }
- 
+  // Fade out, change chapter, then fade in
+  const handleChapterChange = (newChapterId) => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      setChapterId(newChapterId);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    });
+  };
+
+
   const onSwipeLeft = (gestureState) => {
-    //state.myText="You Swiped Left";
-    //setChapterId(followingChapter);
   } 
   const onSwipeRight = (gestureState) => {
-    //state.myText="You Swiped Right";
-    //setChapterId(previousChapter);
   }
  
   const onSwipe = (gestureName, gestureState) => {
-    const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
-    //this.setState({gestureName: gestureName});
-    //state.gestureName=gestureName;
+    const {SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
     switch (gestureName) {
-      case SWIPE_UP:
-        console.log("swipe up - do nothing");
-        break;
-      case SWIPE_DOWN:
-        console.log("swiped down - do nothing");
-        break;
       case SWIPE_LEFT:
         console.log("swiped left - " + followingChapter);
-        setChapterId(followingChapter);
+        if (followingChapter) handleChapterChange(followingChapter);
         break;
       case SWIPE_RIGHT:
         console.log("swiped right - " + previousChapter);
-        setChapterId(previousChapter);
+        if (previousChapter) handleChapterChange(previousChapter);
         break;
     }
   }
@@ -139,8 +126,6 @@ const ChapterContentScreenComponent = ( {route}) => {
     <ScrollView style={styles.container}>
       <GestureRecognizer
         onSwipe={(direction) => onSwipe(direction)}
-        onSwipeUp={() => onSwipeUp()}
-        onSwipeDown={() => onSwipeDown()}
         onSwipeLeft={() => onSwipeLeft()}
         onSwipeRight={() => onSwipeRight()}
         config={config}
@@ -149,6 +134,7 @@ const ChapterContentScreenComponent = ( {route}) => {
           //backgroundColor: state.backgroundColor
         }}
         >
+      <Animated.View style={{ opacity: fadeAnim }}>
       <Text style={styles.chapterTitle}>{chapterTitle}</Text>
       <Text style={styles.subTitle}>{chapterSubtitle}</Text>
       {paragraphs.map((paragraph, index) => (
@@ -158,6 +144,7 @@ const ChapterContentScreenComponent = ( {route}) => {
           </Text>
         </View>
       ))}
+      </Animated.View>
       </GestureRecognizer>
     </ScrollView>
   );

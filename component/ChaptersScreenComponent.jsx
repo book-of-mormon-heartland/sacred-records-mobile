@@ -5,7 +5,8 @@ import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { BookOpen, ChevronRight } from "react-native-feather";
+
 
 
 const ChapterScreenComponent = ( {route} ) => {
@@ -45,7 +46,7 @@ const ChapterScreenComponent = ( {route} ) => {
           <Text style={styles.chapterTitle}>{item.title}</Text>
           <Text style={styles.chapterSubtitle}>{item.subTitle}</Text>
         </View>
-        <Icon name="chevron-right" size={24} color="#555" />
+        <ChevronRight stroke="black" fill="#fff" width={22} height={22} />
       </TouchableOpacity>
     );
   }
