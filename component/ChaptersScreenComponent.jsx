@@ -27,7 +27,7 @@ const ChapterScreenComponent = ( {route} ) => {
   }
   const  apiEndpoint = serverUrl + "/rest/GET/chapters"; // Example endpoint
 
-  console.log("Chapters Screen id is " + id);
+//  console.log("Chapters Screen id is " + id);
 
 
   const renderItem = ({ item }) => {

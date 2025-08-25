@@ -1,31 +1,22 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, Button, Switch } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
-import { Platform } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { useI18n } from '.././context/I18nContext'; 
 
 
-
-const ProfileScreenComponent = ( {navigation} ) => {
+const StoreScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken, fakeSignOut } = useContext(GoogleAuthContext);
-  const isIOS = ( Platform.OS === 'ios' );
+  const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
   const { language, setLanguage, translate } = useI18n();
-
-  const selectLanguage = (selectedLanguage) => {
-    console.log("selected language " + selectedLanguage);
-    setLanguage(selectedLanguage);
-  }
-
+  
 
   return (
-    <View>
-      <Text>Profile Screen</Text>
+    <View style={styles.container}>
+      <Text style={styles.text}>{translate('coming_soon')}</Text>
     </View>
   );
 };
@@ -49,7 +40,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
   },
-
 });
 
-export default ProfileScreenComponent;
+export default StoreScreenComponent;

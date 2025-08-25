@@ -4,11 +4,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ThemeContext } from ".././context/ThemeContext";
 import { GoogleAuthContext } from ".././context/GoogleAuthContext";
 import BookmarkScreenComponent from './BookmarkScreenComponent'; // Adjust path as needed
-import ProfileScreenComponent from './ProfileScreenComponent'; // Adjust path as needed
+import SettingsScreenComponent from './SettingsScreenComponent'; // Adjust path as needed
 import HomeScreenComponent from './HomeScreenComponent'; // Adjust path as needed
 import SearchScreenComponent from './SearchScreenComponent'; // Adjust path as needed
+import RecordingsScreenComponent from './RecordingsScreenComponent'; // Adjust path as needed
 import BookStackNavigatorComponent from './BookStackNavigatorComponent';
-import { BookOpen, Home, Bookmark, User, Search } from "react-native-feather";
+import StoreScreenComponent from './StoreScreenComponent'; // Adjust path as needed
+import { BookOpen, Home, Bookmark, Settings, Search, Headphones, ShoppingCart } from "react-native-feather";
+import { useI18n } from '.././context/I18nContext'; 
 
 const Tab = createBottomTabNavigator();
 
@@ -16,6 +19,8 @@ const TabsComponent = ( ) => {
 
     const { theme, setTheme } = useContext(ThemeContext);
     const { userToken, userProfile  } = useContext(GoogleAuthContext);
+    const { language, setLanguage, translate } = useI18n();
+    
     
 /*
 <Tab.Screen name="Library-Main" component={BookStackNavigatorComponent} 
@@ -31,9 +36,43 @@ const TabsComponent = ( ) => {
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('library'), // The key should correspond to your translation file
                         tabBarIcon: ({focused}) => (
                             <View>
                                 <BookOpen  stroke="black" fill="#fff" width={22} height={22}/>
+                            </View>
+                        )
+                    }}
+                />
+                <Tab.Screen name="Recordings" component={RecordingsScreenComponent} 
+                    options = {{
+                        headerShown: true,
+                        headerTitleAlign: 'center',
+                        tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
+                        tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
+                        tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('recordings'), // The key should correspond to your translation file
+                        tabBarIcon: ({focused}) => (
+                            <View>
+                                <Headphones  stroke="black" fill="#fff" width={22} height={22}/>
+                            </View>
+                        )
+                    }}
+                />
+                <Tab.Screen name="Shopping" component={StoreScreenComponent} 
+                    options = {{
+                        headerShown: true,
+                        headerTitleAlign: 'center',
+                        tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
+                        tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
+                        tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('store'), // The key should correspond to your translation file
+                        tabBarIcon: ({focused}) => (
+                            <View>
+                                <ShoppingCart  stroke="black" fill="#fff" width={22} height={22}/>
                             </View>
                         )
                     }}
@@ -45,6 +84,8 @@ const TabsComponent = ( ) => {
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('bookmark'), // The key should correspond to your translation file
                         tabBarIcon: ({focused}) => (
                             <View>
                                 <Bookmark  stroke="black" fill="#fff" width={22} height={22}/>
@@ -59,6 +100,8 @@ const TabsComponent = ( ) => {
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('search'), // The key should correspond to your translation file
                         tabBarIcon: ({focused}) => (
                             <View>
                                 <Search  stroke="black" fill="#fff" width={22} height={22}/>
@@ -67,7 +110,7 @@ const TabsComponent = ( ) => {
                     }}
                 />
 
-                <Tab.Screen name="Profile" component={ProfileScreenComponent} 
+                <Tab.Screen name="Settings" component={SettingsScreenComponent} 
                     options = {{
                         disabled: userToken?.length>0 ? true : false,
                         headerTitleAlign: 'center',
@@ -75,9 +118,11 @@ const TabsComponent = ( ) => {
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('settings'), // The key should correspond to your translation file
                         tabBarIcon: ({focused}) => (
                             <View>
-                                <User stroke="black" fill="#fff" width={22} height={22}/>
+                                <Settings stroke="black" fill="#fff" width={22} height={22}/>
                             </View>
                         )
                     }}
@@ -93,6 +138,8 @@ const TabsComponent = ( ) => {
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
+                        tabBarShowLabel: false,
+                        title: translate('home'), // The key should correspond to your translation file
                         tabBarIcon: ({focused}) => (
                             <View>
                                 <Home  stroke="black" fill="#fff" width={22} height={22} />

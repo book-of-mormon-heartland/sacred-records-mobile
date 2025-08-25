@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { ThemeProvider } from "./context/ThemeContext";
+import { I18nProvider } from "./context/I18nContext";
 import { GoogleAuthProvider } from "./context/GoogleAuthContext";
 import TabsComponent from './component/TabsComponent'; 
 import {NavigationContainer} from '@react-navigation/native';
@@ -19,11 +20,13 @@ function App() {
 
   return (
     <GoogleAuthProvider>
-      <ThemeProvider>
-        <NavigationContainer>
-          <TabsComponent />
-        </NavigationContainer>
-      </ThemeProvider>
+      <I18nProvider>
+        <ThemeProvider>
+          <NavigationContainer>
+            <TabsComponent />
+          </NavigationContainer>
+        </ThemeProvider>
+      </I18nProvider>
     </GoogleAuthProvider>
   );
 }
