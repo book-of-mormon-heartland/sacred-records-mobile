@@ -13,13 +13,49 @@ const SettingsScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken, fakeSignOut } = useContext(GoogleAuthContext);
+  const { signOut, jwtToken } = useContext(GoogleAuthContext);
+  const [loading, setLoading] = useState(false);
+  
   const isIOS = ( Platform.OS === 'ios' );
   const { language, setLanguage, translate } = useI18n();
 
+  let serverUrl = Environment.NODE_SERVER_URL;
+  if(isIOS) {
+      serverUrl = Environment.IOS_NODE_SERVER_URL;
+  }
+  const  setLanguageEndpoint = serverUrl + "/rest/POST/setLanguage"; // Example endpoint
+
+  const saveLanguage = async (selectedLanguage) => {
+    console.log("Attempting to save language preference to server: " + language);
+    setLoading(true);    
+    try {
+      const response = await fetch(setLanguageEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`
+        },
+        body: JSON.stringify({ language: selectedLanguage }),
+      });
+      if (!response.ok) {
+        console.log("response was not okay")
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const json = await response.json();
+      console.log(json);
+      //setData(json);
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const selectLanguage = (selectedLanguage) => {
-    console.log("selected language " + selectedLanguage);
     setLanguage(selectedLanguage);
+    saveLanguage(selectedLanguage);
   }
 
 
@@ -43,7 +79,7 @@ const SettingsScreenComponent = ( {navigation} ) => {
       <Text style={styles.settingTitle}>{translate('select_language')}</Text>
         <Picker
           selectedValue={language}
-          onValueChange={(itemValue) => setLanguage(itemValue)}
+          onValueChange={(itemValue) => selectLanguage(itemValue)}
           style={styles.picker}
         >
             <Picker.Item

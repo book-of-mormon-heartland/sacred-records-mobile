@@ -1,42 +1,49 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { Platform } from 'react-native';
 import { useI18n } from '.././context/I18nContext'; 
-
-
+import { getLocales } from 'react-native-localize';
 
 const LoginScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
+  const { signIn } = useContext(GoogleAuthContext);
   const isIOS = ( Platform.OS === 'ios' );
   const { language, setLanguage, translate } = useI18n();
 
+  useEffect(() => {
+  }, []); 
 
   const selectLanguage = (selectedLanguage) => {
-    console.log("selected language " + selectedLanguage);
+    //console.log("selected language " + selectedLanguage);
     setLanguage(selectedLanguage);
   }
-
+  /* causing problems
+  const locales = getLocales();
+  const primaryLocale = locales[0];
+  try{
+    setLanguage(primaryLocale.languageCode);
+  } catch(error){
+    // do nothing.  no big deal.
+  }
+  */
 
 
   return (
     <View style={styles.loginContainer}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>{translate('greeting')}</Text>
       <Image source={require('.././assets/sacred-records-logo-200x200.png')} style={styles.loginScreenImage} />
-      <TouchableOpacity style={styles.googleButton} onPress={signIn }>
+      <TouchableOpacity style={styles.googleButton} onPress={ signIn }>
         <Image
           source={require('.././assets/google-sign-in.png')} // Replace with your Google logo image path
           style={styles.logo}
         />
         <Text style={styles.googleButtonText}>{translate('google_login')}</Text>
       </TouchableOpacity>
-
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.button} onPress={() => selectLanguage('en')} activeOpacity={0.7}>
           <Text style={styles.buttonText}>English</Text>
@@ -45,7 +52,6 @@ const LoginScreenComponent = ( {navigation} ) => {
           <Text style={styles.buttonText}>Español</Text>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 };
