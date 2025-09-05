@@ -7,8 +7,7 @@ import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
 
 
-const StoreScreenComponent = () => {
-
+const BookshelfScreenComponent = ( ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
@@ -22,7 +21,9 @@ const StoreScreenComponent = () => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/populateStore"; // Example endpoint
+  const  apiEndpoint = serverUrl + "/rest/GET/Bookshelf"; // Example endpoint
+
+
 
 
   const handlePress = (id, hasChildBooks, title) => {
@@ -52,7 +53,7 @@ const StoreScreenComponent = () => {
   }
 
   useEffect(() => {
-    console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
+    console.log("BookshelfScreenComponent: apiEndpoint=", apiEndpoint);
     const fetchData = async () => {
       try {
         const response = await fetch(apiEndpoint, {
@@ -145,4 +146,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StoreScreenComponent;
+export default BookshelfScreenComponent;

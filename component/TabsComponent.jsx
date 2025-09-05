@@ -29,7 +29,7 @@ const TabsComponent = ( ) => {
     if (userToken?.length>0) {
         return (
             <Tab.Navigator>
-                <Tab.Screen name="Library" component={BookStackNavigatorComponent}
+                <Tab.Screen name="Bookshelf" component={BookStackNavigatorComponent}
                     options = {{
                         headerShown: false,
                         headerTitleAlign: 'center',
@@ -37,7 +37,7 @@ const TabsComponent = ( ) => {
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
                         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa",
                         tabBarShowLabel: true,
-                        title: translate('library'), // The key should correspond to your translation file
+                        title: translate('bookshelf'), // The key should correspond to your translation file
                         tabBarIcon: ({focused}) => (
                             <View>
                                 <BookOpen  stroke="black" fill="#fff" width={22} height={22}/>

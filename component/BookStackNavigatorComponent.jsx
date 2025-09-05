@@ -13,9 +13,9 @@ const BookStackNavigatorComponent = () => {
   
   return (
     <BooksStack.Navigator>
-      <BooksStack.Screen name="Library" 
+      <BooksStack.Screen name="MyBookshelf" 
         options = {{
-          title: translate('library'),
+          title: translate('bookshelf'),
         }}
         component={HomeScreenComponent} />
       <BooksStack.Screen name="Book" component={BookScreenComponent} />

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import LoginScreenComponent from './LoginScreenComponent.jsx';
-import LibraryScreenComponent from './LibraryScreenComponent.jsx';
+import BookshelfScreenComponent from './BookshelfScreenComponent.jsx';
 
 
 const HomeScreenComponent = ( {navigation} ) => {
@@ -11,7 +11,7 @@ const HomeScreenComponent = ( {navigation} ) => {
 
   if(userToken?.length>0) {
     return (
-      <LibraryScreenComponent />
+      <BookshelfScreenComponent />
     );
   } else {
     return (

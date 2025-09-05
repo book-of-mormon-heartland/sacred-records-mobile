@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated, Image } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
@@ -120,6 +120,67 @@ const ChapterContentScreenComponent = ( {route}) => {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80
   };
+/*
+  const renderBoldTextWorks = (text) => {
+    const parts = text.split('**'); // Splits the string by the Markdown-like syntax
+    return parts.map((part, index) => {
+      if (index % 2 === 1) { // Odd indices are the bold parts
+        return (
+          <Text key={index} style={{fontWeight: 'bold'}}>
+            {part}
+          </Text>
+        );
+      }
+      return <Text key={index}>{part}</Text>; // Even indices are normal text
+    });
+  };
+*/
+  const renderPoemText = (text) => {
+    // Remove the [[poem: and ]] markers
+    const poemContent = text.replace('[[poem:', '').replace(']]', '').trim();
+    // Split the poem into lines based on newline characters
+    const lines = poemContent.split('|');
+    return lines.map((line, index) => (
+      <Text key={index} style={styles.poemLine}>
+        {'  '} {line} {'\n'}
+      </Text>
+    ));
+  };
+
+  const renderFormattedText = (text) => {
+    // Base case: if no markdown is found, return the text as is.
+    if (!text.includes('**') && !text.includes('*')) {
+      return <Text>{text}</Text>;
+    }
+
+    // Handle bold first, as it's the more complex, potentially nested element.
+    const boldParts = text.split('**');
+    const renderedBoldParts = boldParts.map((boldPart, boldIndex) => {
+      // If it's an even index, it's not a bold part, so check for italics.
+      if (boldIndex % 2 === 0) {
+        const italicParts = boldPart.split('*');
+        return italicParts.map((italicPart, italicIndex) => {
+          // If it's an odd index, it's an italic part.
+          if (italicIndex % 2 === 1) {
+            return (
+              <Text key={`italic-${italicIndex}`} style={{ fontStyle: 'italic' }}>
+                {italicPart}
+              </Text>
+            );
+          }
+          // Even index is normal text.
+          return <Text key={`normal-${italicIndex}`}>{italicPart}</Text>;
+        });
+      }
+      // Odd index is a bold part.
+      return (
+        <Text key={`bold-${boldIndex}`} style={{ fontWeight: 'bold' }}>
+          {boldPart}
+        </Text>
+      );
+    });
+    return renderedBoldParts;
+  };
 
 
   return (
@@ -139,9 +200,21 @@ const ChapterContentScreenComponent = ( {route}) => {
       <Text style={styles.subTitle}>{chapterSubtitle}</Text>
       {paragraphs.map((paragraph, index) => (
         <View key={index} style={styles.paragraphContainer}>
-          <Text style={styles.paragraphText}>
-            {paragraph}
-          </Text>
+          { paragraph.startsWith("[[image:")?
+            <Image
+              source={{ uri: paragraph.replace('[[image:', '').replace(']]', '').trim() }}
+              style={{ width: '100%', height: 400, resizeMode: 'contain' }}
+            />
+            : 
+            paragraph.startsWith("[[poem:")? 
+            <Text> 
+              {renderPoemText(paragraph)}
+            </Text>
+            :
+            <Text style={styles.paragraphText}>
+              {renderFormattedText(paragraph)}
+            </Text>
+          }
         </View>
       ))}
       </Animated.View>
@@ -185,6 +258,12 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  poemLine: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    lineHeight: 22,
+    paddingLeft: 20,
   },
 });
 
