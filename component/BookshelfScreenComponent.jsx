@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
@@ -11,7 +12,7 @@ const BookshelfScreenComponent = ( ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+  const { jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,9 +24,18 @@ const BookshelfScreenComponent = ( ) => {
   }
   const  apiEndpoint = serverUrl + "/rest/GET/Bookshelf"; // Example endpoint
 
-
-
-
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+      return () => {
+      };
+    }, [])
+  );
+/*
+  useEffect(() => {
+    fetchData();
+  }, []); // Empty dependency array means this runs once on mount
+*/
   const handlePress = (id, hasChildBooks, title) => {
     if(hasChildBooks) {
       navigation.navigate('Book', {
@@ -47,37 +57,37 @@ const BookshelfScreenComponent = ( ) => {
         <TouchableOpacity onPress={() => handlePress(item.id, item.hasChildBooks, item.title)}>
         <Image source={{ uri: item.thumbnail }} style={styles.image} />
         </TouchableOpacity>
-        <Text style={styles.text}>{item.title}</Text>
+        <Text style={styles.text}>{item.thumbnailTitle}</Text>
       </View>
     );
   }
 
-  useEffect(() => {
-    console.log("BookshelfScreenComponent: apiEndpoint=", apiEndpoint);
-    const fetchData = async () => {
-      try {
-        const response = await fetch(apiEndpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`
-          }
-        });
-        if (!response.ok) {
-          console.log("response was not okay")
-          throw new Error(`HTTP error! status: ${response.status}`);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
         }
-        const json = await response.json();
-        setData(json);
-      } catch (error) {
-        console.log("Error");
-        console.log(error);
-        setError(error);
-      } finally {
-        setLoading(false);
+      });
+      if (!response.ok) {
+        console.log("response was not okay");
+        const results = await refreshJwtToken();
+        console.log(results);
+        throw new Error(`HTTP error! status: ${response.status} Go to the settings tab, log out and log back in.`);
       }
-    };
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
+      const json = await response.json();
+      setData(json);
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
 

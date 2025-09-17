@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated, Image, TouchableOpacity, Icon } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { useNavigation, navigate } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import { ArrowRight, ArrowLeft } from "react-native-feather";
+
  
 
 const ChapterContentScreenComponent = ( {route}) => {
@@ -27,6 +29,7 @@ const ChapterContentScreenComponent = ( {route}) => {
   const [previousChapter, setPreviousChapter] = useState("");
   const [followingChapter, setFollowingChapter] = useState("");
   const [chapterId, setChapterId] = useState("");
+  const scrollViewRef = useRef(null);
 
 
   useEffect(() => {
@@ -48,11 +51,16 @@ const ChapterContentScreenComponent = ( {route}) => {
         });
         if (!response.ok) {
           console.log("response was not okay")
-          throw new Error(`HTTP error! status: ${response.status}`);
+          //throw new Error(`HTTP error! status: ${response.status}`);
+          if(response.status==500) {
+            console.log("refreshing token");
+            await refreshToken();
+            fetchData();
+          }
         }
         const json = await response.json();
-        console.log("We should have an array of content.")
-        console.log(json);
+        //console.log("We should have an array of content.")
+        //console.log(json);
         //establish the array here.
         //setData(json);
         let myChapter = json[0];
@@ -84,13 +92,13 @@ const ChapterContentScreenComponent = ( {route}) => {
   const handleChapterChange = (newChapterId) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 500,
+      duration: 100,
       useNativeDriver: true,
     }).start(() => {
       setChapterId(newChapterId);
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 100,
         useNativeDriver: true,
       }).start();
     });
@@ -120,21 +128,27 @@ const ChapterContentScreenComponent = ( {route}) => {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80
   };
-/*
-  const renderBoldTextWorks = (text) => {
-    const parts = text.split('**'); // Splits the string by the Markdown-like syntax
-    return parts.map((part, index) => {
-      if (index % 2 === 1) { // Odd indices are the bold parts
-        return (
-          <Text key={index} style={{fontWeight: 'bold'}}>
-            {part}
-          </Text>
-        );
+
+  const onPreviousPage = () => {
+    if(previousChapter != "") {
+      handleChapterChange(previousChapter);
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: true });
       }
-      return <Text key={index}>{part}</Text>; // Even indices are normal text
-    });
-  };
-*/
+    }
+  }
+
+  const onNextPage = () => {
+    if(followingChapter != "") {
+      handleChapterChange(followingChapter);
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: true });
+      }
+    }
+  }
+
+
+
   const renderPoemText = (text) => {
     // Remove the [[poem: and ]] markers
     const poemContent = text.replace('[[poem:', '').replace(']]', '').trim();
@@ -184,7 +198,7 @@ const ChapterContentScreenComponent = ( {route}) => {
 
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} ref={scrollViewRef}>
       <GestureRecognizer
         onSwipe={(direction) => onSwipe(direction)}
         onSwipeLeft={() => onSwipeLeft()}
@@ -219,6 +233,22 @@ const ChapterContentScreenComponent = ( {route}) => {
       ))}
       </Animated.View>
       </GestureRecognizer>
+
+      {/* Navigation Buttons Container */}
+      <View style={styles.navigationContainer}>
+        {/* Previous Page Button */}
+        <TouchableOpacity style={styles.button} onPress={() => onPreviousPage()}>
+          <ArrowLeft  stroke="black" fill="#fff" width={22} height={22}/>
+          <Text style={styles.buttonText}>Previous</Text>
+        </TouchableOpacity>
+
+        {/* Next Page Button */}
+        <TouchableOpacity style={styles.button} onPress={() => onNextPage()}>
+          <Text style={styles.buttonText}>Next</Text>
+          <ArrowRight  stroke="black" fill="#fff" width={22} height={22}/>
+        </TouchableOpacity>
+      </View>
+
     </ScrollView>
   );
 };
@@ -264,6 +294,27 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     lineHeight: 22,
     paddingLeft: 20,
+  },
+  navigationContainer: {
+    flexDirection: 'row', // Aligns children horizontally
+    justifyContent: 'center', // Centers children horizontally within the container
+    alignItems: 'center', // Centers children vertically
+    marginTop: 20,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: '#EFEFEF', // Light gray background
+  },
+  buttonText: {
+    marginLeft: 5,
+    marginRight: 5,
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });
 

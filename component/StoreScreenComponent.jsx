@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
@@ -12,7 +13,7 @@ const StoreScreenComponent = () => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+  const { jwtToken, refreshToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,20 +25,25 @@ const StoreScreenComponent = () => {
   }
   const  apiEndpoint = serverUrl + "/rest/GET/populateStore"; // Example endpoint
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+      return () => {
+      };
+    }, [])
+  );
+/*
+  useEffect(() => {
+    //console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
+    fetchData();
+  }, []); // Empty dependency array means this runs once on mount
+*/
 
-  const handlePress = (id, hasChildBooks, title) => {
-    if(hasChildBooks) {
-      navigation.navigate('Book', {
-        id: id,
-        title: title,
-      });
-    } else {
-      navigation.navigate('Chapters', {
-        id: id,
-        title: title,
-      });
-    }
-
+  const handlePress = (id, title) => {
+    navigation.navigate('ItemReview', {
+      id: id,
+      title: title,
+    });
   };
 
   const renderItem = ({ item }) => {
@@ -46,38 +52,36 @@ const StoreScreenComponent = () => {
         <TouchableOpacity onPress={() => handlePress(item.id, item.hasChildBooks, item.title)}>
         <Image source={{ uri: item.thumbnail }} style={styles.image} />
         </TouchableOpacity>
-        <Text style={styles.text}>{item.title}</Text>
+        <Text style={styles.text}>{item.thumbnailTitle}</Text>
       </View>
     );
   }
 
-  useEffect(() => {
-    console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
-    const fetchData = async () => {
-      try {
-        const response = await fetch(apiEndpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`
-          }
-        });
-        if (!response.ok) {
-          console.log("response was not okay")
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const json = await response.json();
-        setData(json);
-      } catch (error) {
-        console.log("Error");
-        console.log(error);
-        setError(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
 
+  const fetchData = async () => {
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
+      });
+      if (!response.ok) {
+        console.log("response was not okay");
+        const results = await refreshJwtToken();
+        console.log(results);
+        throw new Error(`HTTP error! status: ${response.status} Go to the settings tab, log out and log back in.`);
+      }
+      const json = await response.json();
+      setData(json);
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   if (loading) {

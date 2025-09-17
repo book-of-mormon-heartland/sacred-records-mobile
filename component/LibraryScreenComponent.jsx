@@ -24,8 +24,6 @@ const LibraryScreenComponent = ( ) => {
   const  apiEndpoint = serverUrl + "/rest/GET/Books"; // Example endpoint
 
 
-
-
   const handlePress = (id, hasChildBooks, title) => {
     if(hasChildBooks) {
       navigation.navigate('Book', {

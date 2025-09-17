@@ -10,6 +10,12 @@
   "audio": "Audio",
   "bookmark": "Marcador",
   "signed_in": "Iniciado sesión",
+  "coming_soon":"Muy pronto",
   "select_language": "Seleccionar idioma",
-  "coming_soon":"Muy pronto"
+  "item_review": "Revisión del artículo",
+  "item_purchase": "Comprar artículo",
+  "purchase_complete": "Compra completa",
+  "make_payment": "Realizar el pago",
+  "add_to_bookshelf": "Añadir a la Estantería",
+  "apply_discount": "Aplicar Descuento"
 }

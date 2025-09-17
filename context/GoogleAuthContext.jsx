@@ -21,6 +21,12 @@ export const GoogleAuthProvider = ({ children }) => {
         serverUrl = Environment.IOS_NODE_SERVER_URL;
     }
 
+    const refreshJwtToken = async() => {
+       console.log("This is the stub for refreshJwtToken");
+       return {
+          message: "working" 
+       }
+    }
 
     const signIn = async () => {
         console.log("signIn");

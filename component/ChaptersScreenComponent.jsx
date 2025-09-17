@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext } from '.././context/GoogleAuthContext';
+import { GoogleAuthContext, refreshToken } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
 import { BookOpen, ChevronRight } from "react-native-feather";
@@ -25,7 +25,7 @@ const ChapterScreenComponent = ( {route} ) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/chapters"; // Example endpoint
+  const  apiEndpoint = serverUrl + "/rest/GET/chapters?parent=" + id; // Example endpoint
 
 //  console.log("Chapters Screen id is " + id);
 
@@ -51,38 +51,43 @@ const ChapterScreenComponent = ( {route} ) => {
     );
   }
 
-  useEffect(() => {
-    console.log("ChapterScreenComponent: apiEndpoint=", apiEndpoint);
+  //let newEndpoint = apiEndpoint + "?parent=" + id;
+  const fetchData = async () => {
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
+      });
+      if (!response.ok) {
+        console.log("response was not okay - ChaptersScreenComponent")
+        //throw new Error(`HTTP error! status: ${response.status}`);
+        if(response.status === 500) {
+          console.log("Token may be expired, attempting refresh");
+          await refreshToken();
+          console.log("Retrying fetch after token refresh");
+          return fetchData(); // Retry fetching data after refreshing token   
+        }
+      }
+      const json = await response.json();
+      setData(json);
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
+
+  useEffect(() => {
+    //console.log("ChapterScreenComponent: apiEndpoint=", apiEndpoint);
     navigation.setOptions({
         title: title,
     });
 
-
-
-    let newEndpoint = apiEndpoint + "?parent=" + id;
-    const fetchData = async () => {
-      try {
-        const response = await fetch(newEndpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`
-          }
-        });
-        if (!response.ok) {
-          console.log("response was not okay")
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const json = await response.json();
-        setData(json);
-      } catch (error) {
-        console.log("Error");
-        console.log(error);
-        setError(error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []); // Empty dependency array means this runs once on mount
 

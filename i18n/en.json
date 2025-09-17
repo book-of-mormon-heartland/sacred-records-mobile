@@ -11,5 +11,11 @@
   "audio": "Audio",
   "signed_in": "Signed In",
   "coming_soon": "Coming Soon",
-  "select_language": "Select Language"
+  "select_language": "Select Language",
+  "item_review": "Review Item",
+  "item_purchase": "Complete the Purchase",
+  "purchase_complete": "Purchase Complete",
+  "make_payment": "Make Payment",
+  "add_to_bookshelf": "Add to Bookshelf",
+  "apply_discount": "Apply"
 }

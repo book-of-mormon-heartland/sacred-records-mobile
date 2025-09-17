@@ -6,10 +6,9 @@ import { GoogleAuthContext } from ".././context/GoogleAuthContext";
 import BookmarkScreenComponent from './BookmarkScreenComponent'; // Adjust path as needed
 import SettingsScreenComponent from './SettingsScreenComponent'; // Adjust path as needed
 import HomeScreenComponent from './HomeScreenComponent'; // Adjust path as needed
-import SearchScreenComponent from './SearchScreenComponent'; // Adjust path as needed
-import RecordingsScreenComponent from './RecordingsScreenComponent'; // Adjust path as needed
 import BookStackNavigatorComponent from './BookStackNavigatorComponent';
-import StoreScreenComponent from './StoreScreenComponent'; // Adjust path as needed
+import StoreStackNavigatorComponent from './StoreStackNavigatorComponent';
+//import StoreScreenComponent from './StoreScreenComponent'; // Adjust path as needed
 import { BookOpen, Home, Bookmark, Settings, Search, ShoppingCart } from "react-native-feather";
 import { useI18n } from '.././context/I18nContext'; 
 
@@ -45,9 +44,9 @@ const TabsComponent = ( ) => {
                         )
                     }}
                 />
-                <Tab.Screen name="Shopping" component={StoreScreenComponent} 
+                <Tab.Screen name="Shopping" component={StoreStackNavigatorComponent} 
                     options = {{
-                        headerShown: true,
+                        headerShown: false,
                         headerTitleAlign: 'center',
                         tabBarStyle: { backgroundColor: theme === "light" ? "#fff" : "#333" },
                         tabBarActiveTintColor: theme === "light" ? "#000" : "#fff",
