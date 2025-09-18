@@ -17,5 +17,9 @@
   "purchase_complete": "Compra completa",
   "make_payment": "Realizar el pago",
   "add_to_bookshelf": "Añadir a la Estantería",
-  "apply_discount": "Aplicar Descuento"
+  "apply_discount": "Aplicar Descuento",
+  "congratulations_book_completed":"Felicidades, has llegado al final de este libro.",
+  "no_previous_chapter": "No hay capítulo anterior.",
+  "quetzal_condor": "Concejo",
+  "quetzal_condor_council": "Consejo de Calibrium del Cóndor Quetzal"
 }

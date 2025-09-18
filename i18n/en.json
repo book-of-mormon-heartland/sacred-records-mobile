@@ -17,5 +17,10 @@
   "purchase_complete": "Purchase Complete",
   "make_payment": "Make Payment",
   "add_to_bookshelf": "Add to Bookshelf",
-  "apply_discount": "Apply"
+  "apply_discount": "Apply",
+  "congratulations_book_completed": "Congratulations, you have reached the end of this book.",
+  "no_previous_chapter": "There is no previous chapter.",
+  "quetzal_condor": "Council",
+  "quetzal_condor_council": "Quetzal Condor Calibrium Council"
+
 }

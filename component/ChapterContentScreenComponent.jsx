@@ -1,21 +1,24 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated, Image, TouchableOpacity, Icon } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useContext, useEffect, useState, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Animated, Image, TouchableOpacity, Alert } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext } from '.././context/GoogleAuthContext';
+import { GoogleAuthContext, refreshJwtToken } from '.././context/GoogleAuthContext';
 import { useNavigation, navigate } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
-import { ArrowRight, ArrowLeft } from "react-native-feather";
+import { ArrowRight, ArrowLeft, Bookmark } from "react-native-feather";
+import { useI18n } from '.././context/I18nContext'; 
 
  
 
 const ChapterContentScreenComponent = ( {route}) => {
 
+  const { language, setLanguage, translate } = useI18n();
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
   const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
   const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
-  const { id } = route.params;
+  //const { id } = route.params;
   const navigation = useNavigation();
   const isIOS = ( Platform.OS === 'ios' );
   let serverUrl = Environment.NODE_SERVER_URL;
@@ -23,68 +26,108 @@ const ChapterContentScreenComponent = ( {route}) => {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
   const  apiEndpoint = serverUrl + "/rest/GET/chapterContentText"; // Example endpoint
+  const { id, title, positionX, positionY, fetchBookmark, bookId } = route.params;
+  const [chapterData, setChapterData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [paragraphs, setParagraphs] = useState([]);
   const [chapterSubtitle, setChapterSubtitle] = useState("");
   const [chapterTitle, setChapterTitle] = useState("");
   const [previousChapter, setPreviousChapter] = useState("");
   const [followingChapter, setFollowingChapter] = useState("");
   const [chapterId, setChapterId] = useState("");
+  //const [bookId, setBookId] = useState("");
+  const [currentY, setCurrentY] = useState(0);
   const scrollViewRef = useRef(null);
 
 
-  useEffect(() => {
-    let myId = ""
-    if(chapterId=="") {
-      myId=id;
-    } else {
-      myId=chapterId;
-    }
-
-    let newEndpoint = apiEndpoint + "?id=" + myId;
-    const fetchData = async () => {
-      try {
-        const response = await fetch(newEndpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`
-          }
-        });
-        if (!response.ok) {
-          console.log("response was not okay")
-          //throw new Error(`HTTP error! status: ${response.status}`);
-          if(response.status==500) {
-            console.log("refreshing token");
-            await refreshToken();
-            fetchData();
-          }
+  const fetchData = async (id) => {
+    setIsLoading(true);
+    let newEndpoint = apiEndpoint + "?id=" + id;
+    try {
+      const response = await fetch(newEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
         }
-        const json = await response.json();
-        //console.log("We should have an array of content.")
-        //console.log(json);
-        //establish the array here.
-        //setData(json);
-        let myChapter = json[0];
-        setParagraphs(myChapter.content);
-        setChapterTitle(myChapter.title);
-        setChapterSubtitle(myChapter.subTitle);
-        setPreviousChapter(myChapter.previousChapter);
-        setFollowingChapter(myChapter.followingChapter);
-        
-        navigation.setOptions({
-          title: myChapter.title,
-        });
-
-        //setData(json);
-      } catch (error) {
-        console.log("Error");
-        console.log(error);
-        setError(error);
-      } finally {
-        setLoading(false);
+      });
+      if (!response.ok) {
+        console.log("response was not okay")
+        //throw new Error(`HTTP error! status: ${response.status}`);
+        if(response.status==500) {
+          console.log("refreshing token");
+          await refreshJwtToken;
+          fetchData(id);
+        }
       }
-    };
-    fetchData();
-  }, [chapterId]); // Empty dependency array means this runs once on mount
+      const json = await response.json();
+      let myChapter = json[0];
+      //setBookId(myChapter.parent); // only needed for bookmarks
+      setChapterData(myChapter);
+      setParagraphs(myChapter.content);
+      setChapterTitle(myChapter.title);
+      setChapterSubtitle(myChapter.subTitle);
+      setPreviousChapter(myChapter.previousChapter);
+      setFollowingChapter(myChapter.followingChapter);
+      navigation.setOptions({
+        title: title,
+      });
+      //setData(json);
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const retrieveBookmark = async () => {
+    const  bookmarkEndpoint = serverUrl + "/bookmarks/getBookmark?bookId=" + bookId; // Example endpoint
+  
+    try {
+      const response = await fetch(bookmarkEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
+      });
+      if (!response.ok) {
+        console.log("response was not okay")
+        //throw new Error(`HTTP error! status: ${response.status}`);
+        if(response.status==500) {
+          console.log("refreshing token");
+          await refreshJwtToken;
+        }
+      }
+      const json = await response.json();
+      let newPositionY=json.positionY
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: newPositionY, animated: true });
+      }      
+    } catch (error) {
+      console.log("Bookmark failed");
+      console.log(error);
+    } finally {
+    }
+  };
+
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchDataAndScroll = async () => {
+        await fetchData(id);
+        if(fetchBookmark=="yes") {
+          await retrieveBookmark(bookId);
+        }
+      };
+      fetchDataAndScroll(); // Call the async function immediately
+      return () => {
+        // Cleanup function remains synchronous
+        // For example, to cancel an ongoing fetch request
+      };
+    }, [id, fetchBookmark]) // Added all dependencies
+  );
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -92,10 +135,11 @@ const ChapterContentScreenComponent = ( {route}) => {
   const handleChapterChange = (newChapterId) => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 100,
+      duration: 20,
       useNativeDriver: true,
     }).start(() => {
       setChapterId(newChapterId);
+      fetchData(newChapterId);
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 100,
@@ -114,13 +158,13 @@ const ChapterContentScreenComponent = ( {route}) => {
     const {SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
     switch (gestureName) {
       case SWIPE_LEFT:
-        console.log("swiped left - " + followingChapter);
-        if (followingChapter) handleChapterChange(followingChapter);
-        break;
+        //console.log("swiped left - " + followingChapter);
+        //if (followingChapter) handleChapterChange(followingChapter);
+        //break;
       case SWIPE_RIGHT:
-        console.log("swiped right - " + previousChapter);
-        if (previousChapter) handleChapterChange(previousChapter);
-        break;
+        //console.log("swiped right - " + previousChapter);
+        //if (previousChapter) handleChapterChange(previousChapter);
+        //break;
     }
   }
 
@@ -136,18 +180,53 @@ const ChapterContentScreenComponent = ( {route}) => {
         scrollViewRef.current.scrollTo({ y: 0, animated: true });
       }
     }
+    else {
+      console.log("No previous Chapter");
+      Alert.alert("No previous chapter.");
+    }
   }
 
   const onNextPage = () => {
+    console.log(followingChapter);
     if(followingChapter != "") {
       handleChapterChange(followingChapter);
       if (scrollViewRef.current) {
         scrollViewRef.current.scrollTo({ y: 0, animated: true });
       }
+    } else {
+      console.log("No followup Chapter");
+      Alert.alert("Congratulations, you have completed the book.");
     }
   }
 
+  const createBookmark = async() => {
+    let bookmark = {
+      bookId: bookId,
+      chapterId: id,
+      chapterTitle: chapterTitle,
+      positionY: currentY
+    }
+    try {
+      const response = await fetch(serverUrl + '/bookmarks/createBookmark', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+          },
+          body: JSON.stringify(bookmark),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const createdBookmark = await response.json();
+      // navigate to the Bookshelf
 
+    } catch (err) {
+      console.log(err);
+      return (err);
+    }
+    //console.log(scrollViewRef.current);
+  }
 
   const renderPoemText = (text) => {
     // Remove the [[poem: and ]] markers
@@ -198,7 +277,16 @@ const ChapterContentScreenComponent = ( {route}) => {
 
 
   return (
-    <ScrollView style={styles.container} ref={scrollViewRef}>
+    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container} 
+      ref={scrollViewRef}
+      onScroll={event => {
+        const yOffset = event.nativeEvent.contentOffset.y;
+        setCurrentY(yOffset);
+      }}
+      scrollEventThrottle={16} 
+      >
       <GestureRecognizer
         onSwipe={(direction) => onSwipe(direction)}
         onSwipeLeft={() => onSwipeLeft()}
@@ -248,9 +336,16 @@ const ChapterContentScreenComponent = ( {route}) => {
           <ArrowRight  stroke="black" fill="#fff" width={22} height={22}/>
         </TouchableOpacity>
       </View>
-
     </ScrollView>
-  );
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => createBookmark()}
+        activeOpacity={0.7}
+      >
+        <Bookmark  stroke="black" fill="#fff" width={22} height={22}/>
+      </TouchableOpacity>
+    </View>
+ );
 };
 
 const styles = StyleSheet.create({
@@ -315,6 +410,22 @@ const styles = StyleSheet.create({
     marginRight: 5,
     color: '#007AFF',
     fontWeight: '600',
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30, // Adjust these values as needed
+    right: 30,  // Adjust these values as needed
+    backgroundColor: '#007BFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8, // for Android shadow
+    shadowColor: '#000', // for iOS shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
 });
 

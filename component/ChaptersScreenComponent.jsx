@@ -1,11 +1,12 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext, refreshToken } from '.././context/GoogleAuthContext';
+import { GoogleAuthContext, refreshJwtToken } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
-import { BookOpen, ChevronRight } from "react-native-feather";
+import { ChevronRight } from "react-native-feather";
 
 
 
@@ -13,7 +14,7 @@ const ChapterScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+  const { jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,7 +29,10 @@ const ChapterScreenComponent = ( {route} ) => {
   const  apiEndpoint = serverUrl + "/rest/GET/chapters?parent=" + id; // Example endpoint
 
 //  console.log("Chapters Screen id is " + id);
-
+/*
+x: 0,
+y: item.positionY
+*/
 
   const renderItem = ({ item }) => {
     return(
@@ -39,6 +43,10 @@ const ChapterScreenComponent = ( {route} ) => {
                navigation.navigate('ChapterContent', {
                        id: item.id,
                        title: item.title,
+                       positionX: 0,
+                       positionY: 0,
+                       bookId: item.parent,
+                       fetchBookmark: "no",
                    });
             }}
           >
@@ -65,12 +73,14 @@ const ChapterScreenComponent = ( {route} ) => {
         //throw new Error(`HTTP error! status: ${response.status}`);
         if(response.status === 500) {
           console.log("Token may be expired, attempting refresh");
-          await refreshToken();
+          await refreshJwtToken;
           console.log("Retrying fetch after token refresh");
           return fetchData(); // Retry fetching data after refreshing token   
         }
       }
       const json = await response.json();
+      console.log("chapters");
+      console.log(json);
       setData(json);
     } catch (error) {
       console.log("Error");
@@ -81,7 +91,19 @@ const ChapterScreenComponent = ( {route} ) => {
     }
   }
 
+  useFocusEffect(
+    React.useCallback(() => {
+      navigation.setOptions({
+          title: title,
+      });
 
+      fetchData();
+      return () => {
+      };
+    }, [])
+  );
+
+  /*
   useEffect(() => {
     //console.log("ChapterScreenComponent: apiEndpoint=", apiEndpoint);
     navigation.setOptions({
@@ -90,8 +112,7 @@ const ChapterScreenComponent = ( {route} ) => {
 
     fetchData();
   }, []); // Empty dependency array means this runs once on mount
-
-
+*/
 
   if (loading) {
     return (

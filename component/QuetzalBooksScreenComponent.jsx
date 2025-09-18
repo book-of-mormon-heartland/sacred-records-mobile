@@ -6,14 +6,15 @@ import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext, refreshJwtToken } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
+import SubscriptionBanner from './SubscriptionBanner.jsx';
 
 
-const StoreScreenComponent = () => {
 
+const QuetzalBookScreenComponent = ( ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const { jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +24,7 @@ const StoreScreenComponent = () => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/populateStore"; // Example endpoint
+  const  apiEndpoint = serverUrl + "/books/getBooksByCategory?category=quetzal-condor"; // Example endpoint
 
   useFocusEffect(
     React.useCallback(() => {
@@ -34,16 +35,22 @@ const StoreScreenComponent = () => {
   );
 /*
   useEffect(() => {
-    //console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
     fetchData();
   }, []); // Empty dependency array means this runs once on mount
 */
+  const handlePress = (id, hasChildBooks, title) => {
+    if(hasChildBooks) {
+      navigation.navigate('Book', {
+        id: id,
+        title: title,
+      });
+    } else {
+      navigation.navigate('Chapters', {
+        id: id,
+        title: title,
+      });
+    }
 
-  const handlePress = (id, title) => {
-    navigation.navigate('ItemReview', {
-      id: id,
-      title: title,
-    });
   };
 
   const renderItem = ({ item }) => {
@@ -53,7 +60,6 @@ const StoreScreenComponent = () => {
         <Image source={{ uri: item.thumbnail }} style={styles.image} />
         </TouchableOpacity>
         <Text style={styles.text}>{item.thumbnailTitle}</Text>
-        <Text style={styles.text}>{item.priceText}</Text>
       </View>
     );
   }
@@ -84,6 +90,9 @@ const StoreScreenComponent = () => {
     }
   };
 
+
+
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -103,6 +112,7 @@ const StoreScreenComponent = () => {
 
   return (
     <View style={styles.container}>
+      <SubscriptionBanner />
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -149,4 +159,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StoreScreenComponent;
+export default QuetzalBookScreenComponent;

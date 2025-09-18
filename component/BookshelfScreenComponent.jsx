@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext } from '.././context/GoogleAuthContext';
+import { GoogleAuthContext, refreshJwtToken } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
 
@@ -73,7 +73,7 @@ const BookshelfScreenComponent = ( ) => {
       });
       if (!response.ok) {
         console.log("response was not okay");
-        const results = await refreshJwtToken();
+        const results = await refreshJwtToken;
         console.log(results);
         throw new Error(`HTTP error! status: ${response.status} Go to the settings tab, log out and log back in.`);
       }

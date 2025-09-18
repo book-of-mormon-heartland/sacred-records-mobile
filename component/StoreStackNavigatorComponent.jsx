@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import StoreScreenComponent from './StoreScreenComponent';
 import ItemReviewScreenComponent from './ItemReviewScreenComponent';
-import PurchaseCompleteScreenComponent from './PurchaseCompleteScreenComponent';
 import { useI18n } from '.././context/I18nContext'; 
 
 const StoreStack = createNativeStackNavigator();
@@ -22,11 +21,6 @@ const StoreStackNavigatorComponent = () => {
           title: translate('item_review'),
         }}
         component={ItemReviewScreenComponent} />
-      <StoreStack.Screen name="PurchaseComplete"
-        options = {{
-          title: translate('purchase_complete'),
-        }}
-        component={PurchaseCompleteScreenComponent} />
 
     </StoreStack.Navigator>
   );
