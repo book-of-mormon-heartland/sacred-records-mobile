@@ -1,17 +1,16 @@
 import React, { useContext } from 'react';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import LoginScreenComponent from './LoginScreenComponent.jsx';
-import BookshelfScreenComponent from './BookshelfScreenComponent.jsx';
+import QuetzalBooksScreenComponent from './QuetzalBooksScreenComponent.jsx';
 
 
 const HomeScreenComponent = ( {navigation} ) => {
 
-  //const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
-  const { userToken } = useContext(GoogleAuthContext);
+  const { jwtToken } = useContext(GoogleAuthContext);
 
-  if(userToken?.length>0) {
+  if(jwtToken?.length>0) {
     return (
-      <BookshelfScreenComponent />
+      <QuetzalBooksScreenComponent />
     );
   } else {
     return (

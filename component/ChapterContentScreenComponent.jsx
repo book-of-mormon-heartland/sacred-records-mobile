@@ -17,7 +17,7 @@ const ChapterContentScreenComponent = ( {route}) => {
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
   const { signIn, signOut, message, setMessage, userToken } = useContext(GoogleAuthContext);
-  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   //const { id } = route.params;
   const navigation = useNavigation();
   const isIOS = ( Platform.OS === 'ios' );
@@ -25,7 +25,6 @@ const ChapterContentScreenComponent = ( {route}) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/chapterContentText"; // Example endpoint
   const { id, title, positionX, positionY, fetchBookmark, bookId } = route.params;
   const [chapterData, setChapterData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +41,7 @@ const ChapterContentScreenComponent = ( {route}) => {
 
 
   const fetchData = async (id) => {
+    const  apiEndpoint = serverUrl + "/chapters/chapterContentText"; // Example endpoint
     setIsLoading(true);
     let newEndpoint = apiEndpoint + "?id=" + id;
     try {
@@ -52,27 +52,34 @@ const ChapterContentScreenComponent = ( {route}) => {
         }
       });
       if (!response.ok) {
-        console.log("response was not okay")
-        //throw new Error(`HTTP error! status: ${response.status}`);
-        if(response.status==500) {
-          console.log("refreshing token");
-          await refreshJwtToken;
-          fetchData(id);
+        console.log(response);
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          console.log("tokenRefreshObj");
+          console.log(tokenRefreshObj);
+          console.log("message" + tokenRefreshObj.message);
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+          } else {
+            console.log("refresh failed")
+          }
         }
+      } else {
+        const json = await response.json();
+        let myChapter = json[0];
+        //setBookId(myChapter.parent); // only needed for bookmarks
+        setChapterData(myChapter);
+        setParagraphs(myChapter.content);
+        setChapterTitle(myChapter.title);
+        setChapterSubtitle(myChapter.subTitle);
+        setPreviousChapter(myChapter.previousChapter);
+        setFollowingChapter(myChapter.followingChapter);
+        navigation.setOptions({
+          title: title,
+        });
       }
-      const json = await response.json();
-      let myChapter = json[0];
-      //setBookId(myChapter.parent); // only needed for bookmarks
-      setChapterData(myChapter);
-      setParagraphs(myChapter.content);
-      setChapterTitle(myChapter.title);
-      setChapterSubtitle(myChapter.subTitle);
-      setPreviousChapter(myChapter.previousChapter);
-      setFollowingChapter(myChapter.followingChapter);
-      navigation.setOptions({
-        title: title,
-      });
-      //setData(json);
     } catch (error) {
       console.log("Error");
       console.log(error);
@@ -92,19 +99,28 @@ const ChapterContentScreenComponent = ( {route}) => {
           'Authorization': `Bearer ${jwtToken}`
         }
       });
+
       if (!response.ok) {
-        console.log("response was not okay")
-        //throw new Error(`HTTP error! status: ${response.status}`);
-        if(response.status==500) {
-          console.log("refreshing token");
-          await refreshJwtToken;
+        //console.log(response);
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+            
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+          }
         }
+      } else {
+        const json = await response.json();
+        let newPositionY=json.positionY
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ y: newPositionY, animated: true });
+        }      
       }
-      const json = await response.json();
-      let newPositionY=json.positionY
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ y: newPositionY, animated: true });
-      }      
     } catch (error) {
       console.log("Bookmark failed");
       console.log(error);

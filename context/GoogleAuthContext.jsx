@@ -21,11 +21,40 @@ export const GoogleAuthProvider = ({ children }) => {
         serverUrl = Environment.IOS_NODE_SERVER_URL;
     }
 
-    const refreshJwtToken = async() => {
-       console.log("This is the stub for refreshJwtToken");
-       return {
-          message: "working" 
-       }
+    const refreshJwtToken = async () => {
+        try {
+            const postResponse = await fetch(serverUrl + "/authentication/refreshJwtToken", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwtToken}`
+                },
+                body: JSON.stringify({ 
+                    jwtToken: jwtToken, 
+                    refreshToken: refreshToken,
+                    userId: userProfile.id
+                }),
+            });
+            if (!postResponse.ok) {
+                console.log("It was an error");
+                throw new Error(`HTTP error! status: ${postResponse.status}`);
+            }
+            const responseData = await postResponse.json();
+            const obj = JSON.parse(responseData);
+            console.log(obj);
+            
+            if(obj.message==="update-jwt-token") {
+              console.log("This is the new jwtToken: " +  obj.jwtToken);
+              //setJwtToken(obj.jwtToken);
+              return obj;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            return JSON.stringify({
+                message: "failure to update",
+                jwtToken: ""
+            });
+        }
     }
 
     const signIn = async () => {
@@ -40,7 +69,7 @@ export const GoogleAuthProvider = ({ children }) => {
 
                 // from here we make calls to server to authenticate to the rest server.
                 try {
-                    const postResponse = await fetch(serverUrl + "/rest/POST/googlelogin", {
+                    const postResponse = await fetch(serverUrl + "/authentication/googlelogin", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -129,7 +158,7 @@ export const GoogleAuthProvider = ({ children }) => {
     }
 
     return (
-        <GoogleAuthContext.Provider value={{ signIn, signOut, googleMessage, setGoogleMessage, userToken, userProfile, jwtToken, refreshToken }}>
+        <GoogleAuthContext.Provider value={{ signIn, signOut, googleMessage, setGoogleMessage, userToken, userProfile, jwtToken, refreshJwtToken, setJwtToken }}>
             { children }
         </GoogleAuthContext.Provider>
     );

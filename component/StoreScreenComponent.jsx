@@ -13,7 +13,7 @@ const StoreScreenComponent = () => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const { setJwtToken, jwtToken, refreshToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +23,6 @@ const StoreScreenComponent = () => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/populateStore"; // Example endpoint
 
   useFocusEffect(
     React.useCallback(() => {
@@ -32,12 +31,6 @@ const StoreScreenComponent = () => {
       };
     }, [])
   );
-/*
-  useEffect(() => {
-    //console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
-*/
 
   const handlePress = (id, title) => {
     navigation.navigate('ItemReview', {
@@ -60,6 +53,9 @@ const StoreScreenComponent = () => {
 
 
   const fetchData = async () => {
+    const  apiEndpoint = serverUrl + "/books/populateStore"; // Example endpoint
+    console.log("In Populate Store fetch data");
+
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
@@ -68,13 +64,23 @@ const StoreScreenComponent = () => {
         }
       });
       if (!response.ok) {
-        console.log("response was not okay");
-        const results = await refreshJwtToken;
-        console.log(results);
-        throw new Error(`HTTP error! status: ${response.status} Go to the settings tab, log out and log back in.`);
+        //console.log(response);
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+            
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+          }
+        }
+      } else {
+        const json = await response.json();
+        setData(json);
       }
-      const json = await response.json();
-      setData(json);
     } catch (error) {
       console.log("Error");
       console.log(error);

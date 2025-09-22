@@ -14,7 +14,7 @@ const ChapterScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,13 +26,7 @@ const ChapterScreenComponent = ( {route} ) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/chapters?parent=" + id; // Example endpoint
 
-//  console.log("Chapters Screen id is " + id);
-/*
-x: 0,
-y: item.positionY
-*/
 
   const renderItem = ({ item }) => {
     return(
@@ -43,8 +37,6 @@ y: item.positionY
                navigation.navigate('ChapterContent', {
                        id: item.id,
                        title: item.title,
-                       positionX: 0,
-                       positionY: 0,
                        bookId: item.parent,
                        fetchBookmark: "no",
                    });
@@ -61,6 +53,7 @@ y: item.positionY
 
   //let newEndpoint = apiEndpoint + "?parent=" + id;
   const fetchData = async () => {
+    const  apiEndpoint = serverUrl + "/chapters/chapters?parent=" + id; // Example endpoint
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
@@ -69,19 +62,25 @@ y: item.positionY
         }
       });
       if (!response.ok) {
-        console.log("response was not okay - ChaptersScreenComponent")
-        //throw new Error(`HTTP error! status: ${response.status}`);
+        //console.log(response);
         if(response.status === 500) {
-          console.log("Token may be expired, attempting refresh");
-          await refreshJwtToken;
-          console.log("Retrying fetch after token refresh");
-          return fetchData(); // Retry fetching data after refreshing token   
+          const tokenRefreshObj = await refreshJwtToken();
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+            
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+          }
         }
+      } else {
+        const json = await response.json();
+        console.log("chapters");
+        console.log(json);
+        setData(json);
       }
-      const json = await response.json();
-      console.log("chapters");
-      console.log(json);
-      setData(json);
     } catch (error) {
       console.log("Error");
       console.log(error);

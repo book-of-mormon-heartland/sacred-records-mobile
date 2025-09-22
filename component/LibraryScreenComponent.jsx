@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
@@ -11,7 +12,7 @@ const LibraryScreenComponent = ( ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,7 +22,6 @@ const LibraryScreenComponent = ( ) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/Books"; // Example endpoint
 
 
   const handlePress = (id, hasChildBooks, title) => {
@@ -50,33 +50,51 @@ const LibraryScreenComponent = ( ) => {
     );
   }
 
-  useEffect(() => {
-    console.log("LibraryScreenComponent: apiEndpoint=", apiEndpoint);
-    const fetchData = async () => {
-      try {
-        const response = await fetch(apiEndpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`
-          }
-        });
-        if (!response.ok) {
-          console.log("response was not okay")
-          throw new Error(`HTTP error! status: ${response.status}`);
+  const fetchData = async () => {
+    const  apiEndpoint = serverUrl + "/books/Books"; // Example endpoint
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
         }
+      });
+      if (!response.ok) {
+        //console.log(response);
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+            
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+          }
+        }
+      } else {
         const json = await response.json();
         setData(json);
-      } catch (error) {
-        console.log("Error");
-        console.log(error);
-        setError(error);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+      return () => {
+      };
+    }, [])
+  );
 
 
   if (loading) {

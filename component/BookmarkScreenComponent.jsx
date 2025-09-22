@@ -3,19 +3,19 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext, refreshJwtToken } from '.././context/GoogleAuthContext';
+import { GoogleAuthContext } from '.././context/GoogleAuthContext';
+import LoginScreenComponent from './LoginScreenComponent.jsx';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
 import { Bookmark } from "react-native-feather";
-import BookStackNavigatorComponent from './BookStackNavigatorComponent';
-
 
 
 const BookmarksScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshToken } = useContext(GoogleAuthContext);
+    
+  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,7 +25,6 @@ const BookmarksScreenComponent = ( {route} ) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/bookmarks/getBookmarks"; // Example endpoint
 
 /*
 navigation.navigate('ChapterContent', {
@@ -34,7 +33,7 @@ navigation.navigate('ChapterContent', {
                    });
 */
   const renderItem = ({ item }) => {
-    console.log(item);
+    //console.log(item);
     return(
       <TouchableOpacity
             style={styles.listItem}
@@ -45,8 +44,6 @@ navigation.navigate('ChapterContent', {
                     params: { 
                       id: item.chapterId,
                       title: item.chapterTitle,
-                      positionX: 0,
-                      positionY: item.positionY,
                       bookId: item.bookId,
                       fetchBookmark: "yes",
                     },
@@ -64,6 +61,8 @@ navigation.navigate('ChapterContent', {
 
   //let newEndpoint = apiEndpoint + "?parent=" + id;
   const fetchData = async () => {
+    const  apiEndpoint = serverUrl + "/bookmarks/getBookmarks"; // Example endpoint
+
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
@@ -72,19 +71,27 @@ navigation.navigate('ChapterContent', {
         }
       });
       if (!response.ok) {
-        console.log("response was not okay - ChaptersScreenComponent")
-        //throw new Error(`HTTP error! status: ${response.status}`);
+        //console.log(response);
         if(response.status === 500) {
-          console.log("Token may be expired, attempting refresh");
-          await refreshJwtToken;
-          console.log("Retrying fetch after token refresh");
-          return fetchData(); // Retry fetching data after refreshing token   
+          const tokenRefreshObj = await refreshJwtToken();
+          //console.log("tokenRefreshObj");
+          //console.log(tokenRefreshObj);
+          //console.log("message " + tokenRefreshObj.message);
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+          //if(false) {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+            
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+          }
         }
-      }
-      const json = await response.json();
-      console.log("json");
-      console.log(json);
-      setData(json);
+      } else {
+        const json = await response.json();
+        setData(json);
+      }      
     } catch (error) {
       console.log("Error");
       console.log(error);
@@ -125,6 +132,25 @@ navigation.navigate('ChapterContent', {
     );
   }
 
+
+  if(jwtToken?.length>0) {
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()} // Adjust keyExtractor based on your data structure        numColumns={2}
+          numColumns={1}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
+    );
+  } else {
+    return (
+      <LoginScreenComponent />
+    );
+  }
+/*
   return (
     <View style={styles.container}>
       <FlatList
@@ -136,6 +162,7 @@ navigation.navigate('ChapterContent', {
       />
     </View>
   );
+*/
     
 };
 

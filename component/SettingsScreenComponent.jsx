@@ -13,7 +13,7 @@ const SettingsScreenComponent = ( {navigation} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { signOut, jwtToken } = useContext(GoogleAuthContext);
+  const { signOut, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
   const [loading, setLoading] = useState(false);
   
   const isIOS = ( Platform.OS === 'ios' );
@@ -38,11 +38,18 @@ const SettingsScreenComponent = ( {navigation} ) => {
         body: JSON.stringify({ language: selectedLanguage }),
       });
       if (!response.ok) {
-        console.log("response was not okay")
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            fetchData(); // Retry fetching data after refreshing token   
+          } else {
+            console.log("refresh failed")
+          }
+        }
+      } else {
+        const json = await response.json();
+        console.log(json);
       }
-      const json = await response.json();
-      console.log(json);
       //setData(json);
     } catch (error) {
       console.log("Error");

@@ -12,12 +12,12 @@ const SubscriptionBanner = () => {
     >
       <View style={styles.textContainer}>
         <Text style={styles.title}>Major Release</Text>
-        <Text style={styles.subtitle}>The Quetzal Condor Callibrium Council has released these records for public viewing.  Read the stories from the record keepers from numerous tribes from North America to South America.</Text>
+        <Text style={styles.subtitle}>The Maya Quetzal Bio Region Council has released these records for public viewing.  Read the stories from the record keepers from numerous tribes from North America to South America.</Text>
         <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Subscribe Today</Text>
         </TouchableOpacity>
         <Text style={styles.secondSide}>
-            75% of proceeds go to the Quetzal Condor Calibrium Council.
+            75% of proceeds go to the Maya Quetzal Bio Region Council.
         </Text>
         <Text style={styles.price}>Only $9.99 per month.</Text>
       </View>

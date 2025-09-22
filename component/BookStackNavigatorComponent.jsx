@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreenComponent from './HomeScreenComponent';
+import BookshelfScreenComponent from './BookshelfScreenComponent';
 import BookScreenComponent from './BookScreenComponent';
 import ChaptersScreenComponent from './ChaptersScreenComponent';
 import ChapterContentScreenComponent from './ChapterContentScreenComponent';
@@ -17,7 +17,7 @@ const BookStackNavigatorComponent = () => {
         options = {{
           title: translate('bookshelf'),
         }}
-        component={HomeScreenComponent} />
+        component={BookshelfScreenComponent} />
       <BooksStack.Screen name="Book" component={BookScreenComponent} />
       <BooksStack.Screen name="Chapters" component={ChaptersScreenComponent} />
       <BooksStack.Screen name="ChapterContent" component={ChapterContentScreenComponent} />

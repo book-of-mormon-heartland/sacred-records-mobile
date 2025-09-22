@@ -1,17 +1,4 @@
-import {
-  Address,
-  AddressDetails,
-  AddressSheet,
-  AddressSheetError,
-  BillingDetails,
-  CardBrand,
-  CustomPaymentMethod,
-  CustomPaymentMethodResult,
-  CustomPaymentMethodResultStatus,
-  PaymentMethodLayout,
-  PaymentSheetError,
-  useStripe,
-} from '@stripe/stripe-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useContext, useState, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 var Environment = require('.././context/environment.ts');
@@ -26,7 +13,7 @@ const ItemReviewScreenComponent = ( {route} ) => {
 
   const { language, setLanguage, translate } = useI18n();
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
-  const { jwtToken, refreshToken, userProfile } = useContext(GoogleAuthContext);
+  const {  setJwtToken, jwtToken, refreshJwtToken, userProfile } = useContext(GoogleAuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
@@ -37,7 +24,6 @@ const ItemReviewScreenComponent = ( {route} ) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
-  const  apiEndpoint = serverUrl + "/rest/GET/bookForReview"; // Example endpoint
 
   const [bookSubtitle, setBookSubtitle] = useState("");
   const [bookTitle, setBookTitle] = useState("");
@@ -144,8 +130,8 @@ const ItemReviewScreenComponent = ( {route} ) => {
       const createdOrder = await response.json();
   
       // navigate to the Bookshelf
-      console.log("createdOrder");
-      console.log(createdOrder);
+      //console.log("createdOrder");
+      //console.log(createdOrder);
 
       if(createdOrder.message == "success") {
         // lets navigate
@@ -158,20 +144,33 @@ const ItemReviewScreenComponent = ( {route} ) => {
     } 
   }
 
-  useEffect(() => {
+
+  const fetchData = async () => {
+    const  apiEndpoint = serverUrl + "/books/bookForReview"; // Example endpoint
     let newEndpoint = apiEndpoint + "?id=" + id;
-    const fetchData = async () => {
-      try {
-        const response = await fetch(newEndpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${jwtToken}`
-          }
-        });
-        if (!response.ok) {
-          console.log("response was not okay")
-          throw new Error(`HTTP error! status: ${response.status}`);
+
+    try {
+      const response = await fetch(newEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
         }
+      });
+      if (!response.ok) {
+        //console.log(response);
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
+            setJwtToken(tokenRefreshObj.jwtToken);
+            console.log("Maybe consider fetchData()");
+            
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+          }
+        }
+      } else {
         const json = await response.json();
         let myBook = json[0];
         console.log(myBook);
@@ -185,17 +184,25 @@ const ItemReviewScreenComponent = ( {route} ) => {
         setDiscountCode(myBook.discountCode);
         setDiscountPrice(myBook.discountPrice);
         setDiscountPriceText(myBook.discountPriceText);
-
-      } catch (error) {
-        console.log("Error");
-        console.log(error);
-        setError(error);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchData();
-  }, []);
+    } catch (error) {
+      console.log("Error");
+      console.log(error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+      return () => {
+      };
+    }, [])
+  );
+
 
   return (
     <ScrollView style={styles.scrollViewContainer}  horizontal={false}>
