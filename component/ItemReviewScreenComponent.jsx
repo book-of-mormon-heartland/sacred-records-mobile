@@ -41,6 +41,13 @@ const ItemReviewScreenComponent = ( {route} ) => {
 
 
 
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
+
+
   const applyDiscount = () => {
     console.log("Apply discount");
     if(inputDiscountCode.toLowerCase() === discountCode.toLowerCase() ) {
@@ -51,7 +58,6 @@ const ItemReviewScreenComponent = ( {route} ) => {
     } else {
       console.log("Wrong code.  No discount");
     }
-
   }
  
   const addToBookshelf = async () => {

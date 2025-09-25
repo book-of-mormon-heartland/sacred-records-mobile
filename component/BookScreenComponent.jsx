@@ -25,6 +25,11 @@ const BookScreenComponent = ( {route} ) => {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
 
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
 
   const handlePress = (id, title) => {
     console.log("this is id " + id)
@@ -46,6 +51,7 @@ const BookScreenComponent = ( {route} ) => {
     );
   }
 
+
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/Book"; // Example endpoint
     let newEndpoint = apiEndpoint + "?bookid=" + id;
@@ -63,8 +69,6 @@ const BookScreenComponent = ( {route} ) => {
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
             console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
-            
           } else {
             // its been a week.  Login from this location.
             setJwtToken();

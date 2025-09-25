@@ -45,7 +45,7 @@ export const GoogleAuthProvider = ({ children }) => {
             
             if(obj.message==="update-jwt-token") {
               console.log("This is the new jwtToken: " +  obj.jwtToken);
-              //setJwtToken(obj.jwtToken);
+              setJwtToken(obj.jwtToken);
               return obj;
             }
         } catch (error) {

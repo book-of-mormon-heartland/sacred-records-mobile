@@ -40,6 +40,13 @@ const ChapterContentScreenComponent = ( {route}) => {
   const scrollViewRef = useRef(null);
 
 
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
+
+
   const fetchData = async (id) => {
     const  apiEndpoint = serverUrl + "/chapters/chapterContentText"; // Example endpoint
     setIsLoading(true);
@@ -52,7 +59,6 @@ const ChapterContentScreenComponent = ( {route}) => {
         }
       });
       if (!response.ok) {
-        console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           console.log("tokenRefreshObj");
@@ -76,9 +82,11 @@ const ChapterContentScreenComponent = ( {route}) => {
         setChapterSubtitle(myChapter.subTitle);
         setPreviousChapter(myChapter.previousChapter);
         setFollowingChapter(myChapter.followingChapter);
+        console.log("myChapter.title " + myChapter.title);
         navigation.setOptions({
-          title: title,
+          title: myChapter.title,
         });
+        
       }
     } catch (error) {
       console.log("Error");
@@ -88,6 +96,8 @@ const ChapterContentScreenComponent = ( {route}) => {
       setIsLoading(false);
     }
   };
+
+
   
   const retrieveBookmark = async () => {
     const  bookmarkEndpoint = serverUrl + "/bookmarks/getBookmark?bookId=" + bookId; // Example endpoint
@@ -107,8 +117,6 @@ const ChapterContentScreenComponent = ( {route}) => {
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
             console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
-            
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
@@ -154,7 +162,8 @@ const ChapterContentScreenComponent = ( {route}) => {
       duration: 20,
       useNativeDriver: true,
     }).start(() => {
-      setChapterId(newChapterId);
+      //setChapterId(newChapterId);
+      console.log("newChapterId " + newChapterId);
       fetchData(newChapterId);
       Animated.timing(fadeAnim, {
         toValue: 1,

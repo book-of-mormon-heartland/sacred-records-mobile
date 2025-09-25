@@ -1,8 +1,61 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { GoogleAuthContext } from '.././context/GoogleAuthContext';var Environment = require('.././context/environment.ts');
+import { Platform } from 'react-native';
+
+
 
 const SubscriptionBanner = () => {
+
+  const {  jwtToken } = useContext(GoogleAuthContext);
+  const isIOS = ( Platform.OS === 'ios' );
+  let serverUrl = Environment.NODE_SERVER_URL;
+  if(isIOS) {
+      serverUrl = Environment.IOS_NODE_SERVER_URL;
+  }
+
+  
+  const signUp = async () => {
+    console.log("Attempting Signup");
+    // make rest call to sign up.
+    //const  apiEndpoint = serverUrl + "/subscriptionss/getBooksByCategory?category=quetzal-condor"; // Example endpoint
+    //const  apiEndpoint = serverUrl + "/subscriptions/getSubscriptions?category=quetzal-condor"; // Example endpoint
+    /*
+    const  apiEndpoint = serverUrl + "/subscriptions/getSubscriptions"; // Example endpoint
+    console.log(apiEndpoint);
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`
+        }
+      });
+      if (!response.ok) {
+        console.log("Response not okay")
+      } else {
+        const json = await response.json();
+        console.log(json);
+
+        const message = JSON.parse(json);
+        console.log(message.subscriptions);
+        if (message.subscriptions.includes("quetzal-condor")) {
+          console.log("Subscribed");
+        } else {
+          console.log("Not Subscribed"); 
+        }
+
+        //setData(json);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+    }
+    */
+
+  }
+
+
   return (
     <LinearGradient
       colors={['#6a11cb', '#2575fc']}
@@ -13,7 +66,7 @@ const SubscriptionBanner = () => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>Major Release</Text>
         <Text style={styles.subtitle}>The Maya Quetzal Bio Region Council has released these records for public viewing.  Read the stories from the record keepers from numerous tribes from North America to South America.</Text>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => subscribe() }>
             <Text style={styles.buttonText}>Subscribe Today</Text>
         </TouchableOpacity>
         <Text style={styles.secondSide}>

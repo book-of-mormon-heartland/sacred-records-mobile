@@ -23,6 +23,12 @@ const BookshelfScreenComponent = ( ) => {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
 
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
+
 
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/Bookshelf"; // Example endpoint
@@ -41,7 +47,6 @@ const BookshelfScreenComponent = ( ) => {
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
             console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
             
           } else {
             // its been a week.  Login from this location.
@@ -71,6 +76,10 @@ const BookshelfScreenComponent = ( ) => {
 
 
   const handlePress = (id, hasChildBooks, title) => {
+    console.log("Will attempt navigation");
+    console.log("id " + id);
+    console.log("title " + title);
+
     if(hasChildBooks) {
       navigation.navigate('Book', {
         id: id,

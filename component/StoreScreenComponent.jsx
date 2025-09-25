@@ -51,6 +51,12 @@ const StoreScreenComponent = () => {
     );
   }
 
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
+
 
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/populateStore"; // Example endpoint
@@ -70,7 +76,6 @@ const StoreScreenComponent = () => {
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
             console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
             
           } else {
             // its been a week.  Login from this location.

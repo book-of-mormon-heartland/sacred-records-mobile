@@ -48,7 +48,7 @@ const SettingsScreenComponent = ( {navigation} ) => {
         }
       } else {
         const json = await response.json();
-        console.log(json);
+        //console.log(json);
       }
       //setData(json);
     } catch (error) {

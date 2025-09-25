@@ -28,6 +28,13 @@ const ChapterScreenComponent = ( {route} ) => {
   }
 
 
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
+
+
   const renderItem = ({ item }) => {
     return(
       <TouchableOpacity
@@ -68,8 +75,6 @@ const ChapterScreenComponent = ( {route} ) => {
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
             console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
-            
           } else {
             // its been a week.  Login from this location.
             setJwtToken();

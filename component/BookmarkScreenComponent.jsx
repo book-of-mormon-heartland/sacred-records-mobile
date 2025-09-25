@@ -26,12 +26,13 @@ const BookmarksScreenComponent = ( {route} ) => {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
 
-/*
-navigation.navigate('ChapterContent', {
-                       id: item.id,
-                       title: item.title,
-                   });
-*/
+  useEffect(() => {
+    if (jwtToken) {
+      fetchData();
+    }
+  }, [jwtToken]); 
+
+
   const renderItem = ({ item }) => {
     //console.log(item);
     return(
@@ -58,11 +59,13 @@ navigation.navigate('ChapterContent', {
       </TouchableOpacity>
     );
   }
+  
 
   //let newEndpoint = apiEndpoint + "?parent=" + id;
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/bookmarks/getBookmarks"; // Example endpoint
-
+    console.log("old jwtToken");
+    console.log(jwtToken);
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
@@ -71,18 +74,13 @@ navigation.navigate('ChapterContent', {
         }
       });
       if (!response.ok) {
-        //console.log(response);
+        console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
-          //console.log("tokenRefreshObj");
-          //console.log(tokenRefreshObj);
-          //console.log("message " + tokenRefreshObj.message);
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-          //if(false) {
             console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
-            
+             
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
