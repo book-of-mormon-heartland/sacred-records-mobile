@@ -14,7 +14,7 @@ const ChapterScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const {  setJwtToken, refreshJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,12 +27,6 @@ const ChapterScreenComponent = ( {route} ) => {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
 
-
-  useEffect(() => {
-    if (jwtToken) {
-      fetchData();
-    }
-  }, [jwtToken]); 
 
 
   const renderItem = ({ item }) => {
@@ -61,29 +55,29 @@ const ChapterScreenComponent = ( {route} ) => {
   //let newEndpoint = apiEndpoint + "?parent=" + id;
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/chapters/chapters?parent=" + id; // Example endpoint
+    const myJwtToken = await retrieveJwtToken();
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        //console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
+            await saveJwtToken(tokenRefreshObj.jwtToken);
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
+            await deleteJwtToken();
           }
         }
       } else {
         const json = await response.json();
-        console.log("chapters");
-        console.log(json);
+        console.log("error on ChaptersScreenComponent");
         setData(json);
       }
     } catch (error) {
@@ -107,16 +101,6 @@ const ChapterScreenComponent = ( {route} ) => {
     }, [])
   );
 
-  /*
-  useEffect(() => {
-    //console.log("ChapterScreenComponent: apiEndpoint=", apiEndpoint);
-    navigation.setOptions({
-        title: title,
-    });
-
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
-*/
 
   if (loading) {
     return (

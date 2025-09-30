@@ -12,7 +12,7 @@ const BookScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const { setJwtToken, refreshJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,11 +25,6 @@ const BookScreenComponent = ( {route} ) => {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
 
-  useEffect(() => {
-    if (jwtToken) {
-      fetchData();
-    }
-  }, [jwtToken]); 
 
   const handlePress = (id, title) => {
     console.log("this is id " + id)
@@ -54,24 +49,25 @@ const BookScreenComponent = ( {route} ) => {
 
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/Book"; // Example endpoint
+    const myJwtToken = await retrieveJwtToken();
     let newEndpoint = apiEndpoint + "?bookid=" + id;
     try {
       const response = await fetch(newEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        //console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
+            await saveJwtToken(tokenRefreshObj.jwtToken);
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
+            await deleteJwtToken();
           }
         }
       } else {
@@ -79,7 +75,7 @@ const BookScreenComponent = ( {route} ) => {
         setData(json);
       }
     } catch (error) {
-      console.log("Error");
+      console.log("Error in BookScreenComponent");
       console.log(error);
       setError(error);
     } finally {
@@ -98,15 +94,7 @@ const BookScreenComponent = ( {route} ) => {
     }, [])
   );
 
-/*
-  useEffect(() => {
-    //console.log("BookScreenComponent: apiEndpoint=", apiEndpoint);
-    navigation.setOptions({
-        title: title,
-    });
-    fetchData();
-  }, []); // Empty dependency array means this runs once on mount
-*/
+
 
   if (loading) {
     return (

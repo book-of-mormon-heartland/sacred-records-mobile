@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity, Alert, Button, Linking } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useI18n } from '.././context/I18nContext'; 
+import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 
 
 
@@ -16,7 +17,7 @@ const QuetzalBookScreenComponent = ( ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const { refreshJwtToken, setJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
   const { language, setLanguage, translate } = useI18n();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,30 +29,340 @@ const QuetzalBookScreenComponent = ( ) => {
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
+  const stripeKey=Environment.STRIPE;
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
-  useEffect(() => {
-    if (jwtToken) {
-      fetchData();
-    }
-  }, [jwtToken]); 
+
+  const confirmHandler = async (
+      paymentMethod,
+      shouldSavePaymentMethod,
+      intentCreationCallback
+    ) => {
+      // explained later
+      console.log("confirmHandler called");
+  }
 
   const subscribe = async() => {
-    console.log("hit subscribe button");
-  } 
+    const subscriptionResults = await checkIfSubscribed();
+    if(subscriptionResults.isSubscribed) {
+      Alert.alert("You are already subscribed");
+      setShowBanner(false);
+      //await fetchData();
+    } else {
+      console.log("you are not subscribed.  We shall proceed.");
+      // do credit card processing here.
 
+      //const piResponse = await createQzSubscriptionIntent({
+      //  amount: 999,
+      //});
+      const setupIntentResponse = await createSetupIntent();
+      console.log(setupIntentResponse);
+      let message = setupIntentResponse.message;
+      let customerId  = setupIntentResponse.customerId;
+      let setupIntentClientSecret = setupIntentResponse.setupIntentClientSecret;
+      const initialized = await initializePaymentSheet(setupIntentClientSecret, customerId);
+      console.log("initialized: " + initialized);
+      const { error } = await presentPaymentSheet();
+
+      if (error) {
+        if (error.code === PaymentSheetError.Canceled) {
+           Alert.alert(`Error code: ${error.code}`, error.message);
+          // Customer canceled - you should probably do nothing.
+        } else {
+           Alert.alert(`Error code: ${error.code}`, error.message);
+          // PaymentSheet encountered an unrecoverable error. You can display the error to the user, log it, etc.
+        }
+      } else {
+        // Payment completed - show a confirmation screen.
+
+
+
+
+        //Alert.alert('Success', 'Your order is confirmed!');
+        // Dont have this payment Method Id.  Need to get it from the setupIntentClientSecret.
+
+        try {
+          //const setupIntent = await createSetupIntent();
+          //console.log("setupIntent from createSetupIntent");
+          //console.log(setupIntent);
+          //const savePaymentMethodResult = await savePaymentMethod();
+
+          const clientSecretObj = await createQzSubscriptionIntent(setupIntentResponse);
+          console.log("clientSecretObj from createQzSubscriptionIntent");
+          console.log(clientSecretObj);
+
+          if(clientSecretObj === undefined) {
+            console.log("There was an error processing your payment.  Please try again later.")
+            Alert.alert("There was an error processing your payment.  Please try again later.");
+            return;
+          }
+
+          // when done with CC processing make call to finish purchase.
+          // we are subscribed now.
+          await finalizePurchase();
+          await determineIfBannerNeeded();
+          await fetchData();
+          
+        } catch(err) {
+          console.log("Error getting in the process as a whole.");
+          console.log(err); 
+          return(err);
+        }
+      }
+      //console.log("finalResult from openPaymentSheet");
+      console.log(finalResult);
+      /*
+      if(finalResult === "success") {
+        if(!initialized) {
+          Alert.alert("There was an error initializing payment processing.  Please try again later.");
+          return;
+        } else {    
+          console.log("about to savePaymentMethod");
+          const savePaymentMethodResult = await savePaymentMethod();
+          console.log("savePaymentMethodResults");
+          console.log(savePaymentMethodResult);
+          // this is where savePaymentMethod continues if successful.
+          const initialized = await initializePaymentSheet(setupIntentClientSecret, customerId);
+          if (initialized) {
+              // 2. Present the Payment Sheet UI
+              const { error: presentError } = await presentPaymentSheet();
+
+              if (presentError) {
+                  if (presentError.code === 'Canceled') {
+                      // User canceled the process
+                      console.log('Setup cancelled by user.');
+                      return "cancelled";
+                  } else {
+                      // Other error occurred (e.g., failed authentication)
+                      Alert.alert(`Setup Failed: ${presentError.message}`);
+                      return "failed";
+                  }
+              } else {
+                  // 3. Success! The payment method is now saved to the Customer
+                  Alert.alert('Success', 'Payment method saved!');
+                  return "success";
+              }
+          }
+
+
+        }
+      } else {
+        Alert.alert("There was an error processing your payment.  Please try again later.");
+      }
+*/
+    }
+  }
+
+  const initializePaymentSheet = async (clientSecret, customerId) => {
+    // 1. Initialize the Payment Sheet
+
+    const { error: initError } = await initPaymentSheet({
+        setupIntentClientSecret: clientSecret,
+        customerId: customerId,
+        merchantDisplayName: 'Sacred Records',
+        returnURL: 'QuetzalBooksScreenComponent',
+        // Optionally customize appearance, etc.
+    });
+
+    /*
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: "Example, Inc.",
+      setupIntentClientSecret: clientSecret,
+      customerId: customerId,
+      merchantDisplayName: 'Sacred Records',
+      intentConfiguration: {
+        mode: {
+          amount: 999,
+          currencyCode: 'USD',
+        },
+        confirmHandler: confirmHandler
+      }
+    });
+    */
+
+    if (initError) {
+        Alert.alert(`Error initializing: ${initError.message}`);
+        return false;
+    }
+    return true;
+  };
+
+  const createSetupIntent = async() => {
+    try {
+      const myJwtToken = await retrieveJwtToken();
+      const response = await fetch(serverUrl + '/payments/setupIntent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${myJwtToken}`
+          },
+          body: JSON.stringify({ amount: 999 }),
+      });
+      console.log("response.ok");
+      if (!response.ok) {
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            setJwtToken(tokenRefreshObj.jwtToken);
+            saveJwtToken(tokenRefreshObj.jwtToken);
+            //await createQzSubscriptionIntent();
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+            deleteJwtToken();
+          }
+        }
+      } else {
+        const clientSecretObj = await response.json();
+        return clientSecretObj;
+      }
+    } catch (err) {
+      console.log("Error in QuetzalBooksScreenComponent onQzCreateSetupIntent")
+      console.log(err);
+      return (err);
+    }
+
+  }
+
+
+  const createQzSubscriptionIntent = async (paymentMethodId) => {
+    console.log("in qzSubscriptionIntent");
+    //console.log(paymentMethodId );
+    //console.log(paymentMethodId.setupIntentClientSecret );
+    const customerId = paymentMethodId.customerId;
+    const setupIntentClientSecret = paymentMethodId.setupIntentClientSecret;
+
+    try {
+      const myJwtToken = await retrieveJwtToken();
+      const response = await fetch(serverUrl + '/payments/createSubscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${myJwtToken}`
+          },
+          body: JSON.stringify({ 
+            payment_method_id : paymentMethodId
+          }),
+      });
+      console.log("response.ok");
+      console.log(response.ok);
+      if (!response.ok) {
+
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj?.message === "update-jwt-token") {
+            setJwtToken(tokenRefreshObj.jwtToken);
+            saveJwtToken(tokenRefreshObj.jwtToken);
+            //await createQzSubscriptionIntent();
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+            deleteJwtToken();
+          }
+        }
+      }
+      const subscriptionObj = await response.json();
+      console.log("return object");
+      console.log(subscriptionObj);
+
+      return clientSecretObj;
+    } catch (err) {
+      return (err);
+    }
+  };
+
+
+  const finalizePurchase = async() => {
+    const myJwtToken = await retrieveJwtToken()
+    try {
+      const response = await fetch(serverUrl + "/subscriptions/finalizePurchase", {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${myJwtToken}`
+          },
+          body: JSON.stringify({ 
+              subscription: "quetzal-condor"
+          }),
+      });
+      if (!response.ok) {
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            setJwtToken(tokenRefreshObj.jwtToken);
+            saveJwtToken(tokenRefreshObj.jwtToken);
+          } else {
+            setJwtToken();
+            deleteJwtToken();
+          }
+        } else {
+          console.log("Other error in subscriptions/subscribe");
+        }
+      } else {
+        const responseData = await response.json();
+        const obj = JSON.parse(responseData);
+        console.log(obj);
+        if(obj.isSubscribed) {
+          await determineIfBannerNeeded();
+          await fetchData();
+        }
+        return obj;
+      }
+    } catch (error) {
+       return {};
+    }
+  }
+
+  const checkIfSubscribed = async() => {
+    const myJwtToken = await retrieveJwtToken()
+    try {
+      const response = await fetch(serverUrl + "/subscriptions/checkIfSubscribed", {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${myJwtToken}`
+          },
+          body: JSON.stringify({ 
+              subscription: "quetzal-condor"
+          }),
+      });
+      if (!response.ok) {
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            setJwtToken(tokenRefreshObj.jwtToken);
+            saveJwtToken(tokenRefreshObj.jwtToken);
+          } else {
+            setJwtToken();
+            deleteJwtToken();
+          }
+        } else {
+          console.log("Other error in subscriptions/subscribe");
+        }
+      } else {
+        const responseData = await response.json();
+        const obj = JSON.parse(responseData);
+        return obj;
+      }
+    } catch (error) {
+       return {};
+    }
+
+  }
+
+  
   const handlePress = (id, hasChildBooks, title) => {
-    console.log("Will attempt navigation");
-    console.log("id " + id);
-    console.log("title " + title);
     
     if(hasChildBooks) {
-      console.log("it has child books");
       navigation.navigate('Book', {
         id: id,
         title: title,
       });
     } else {
-      console.log("it has no child books");
       navigation.navigate('Chapters', {
         id: id,
         title: title,
@@ -60,74 +371,78 @@ const QuetzalBookScreenComponent = ( ) => {
 
   };
 
-
   const determineIfBannerNeeded = async() => {
     const  apiEndpoint = serverUrl + "/subscriptions/getSubscriptions"; // Example endpoint
+    const myJwtToken = await retrieveJwtToken();
+
     console.log(apiEndpoint);
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        console.log("Response not okay")
+        if(response.status === 500) {
+          const tokenRefreshObj = await refreshJwtToken();
+          
+          if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
+            setJwtToken(tokenRefreshObj.jwtToken);
+            saveJwtToken(tokenRefreshObj.jwtToken);
+          } else {
+            // its been a week.  Login from this location.
+            setJwtToken();
+            deleteJwtToken();
+          }
+        }
       } else {
         const json = await response.json();
-        console.log(json);
-
         const message = JSON.parse(json);
-        console.log(message.subscriptions);
         if (message.subscriptions.includes("quetzal-condor")) {
-          console.log("Subscribed");
           setShowBanner(false);
         } else {
-          console.log("Not Subscribed"); 
           setShowBanner(true);
         }
 
         //setData(json);
       }
     } catch (error) {
+      console.log("error in QuetzalBooksScreenComponent - banner");
       console.log(error);
       setShowBanner(true);
     } finally {
     }
-
-
   }
 
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/getBooksByCategory?category=quetzal-condor"; // Example endpoint
+    const myJwtToken = await retrieveJwtToken();
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
-            
+            await saveJwtToken(tokenRefreshObj.jwtToken);
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
+            await deleteJwtToken();
           }
         }
       } else {
-
         const json = await response.json();
         setData(json);
       }
     } catch (error) {
-      console.log("Error");
+      console.log("Error in QuetzalBooksScreenComponent fetchData");
       console.log(error);
       setError(error);
     } finally {
@@ -137,11 +452,16 @@ const QuetzalBookScreenComponent = ( ) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      determineIfBannerNeeded();
-      fetchData();
-      return () => {
+      const loadData = async () => {
+        await determineIfBannerNeeded();
+        await fetchData();
       };
-    }, [])
+      loadData();
+
+      return () => {
+        // cleanup logic
+      };
+    }, []) // Dependencies array
   );
 
 
@@ -190,34 +510,40 @@ const QuetzalBookScreenComponent = ( ) => {
   if(showBanner) {
     // show the banner and the items not clickable with message.
     return (
-      <View  style={styles.container}>
-        <LinearGradient
-          colors={['#6a11cb', '#2575fc']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.bannerContainer}
-        >
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>Major Release</Text>
-            <Text style={styles.subtitle}>The Maya Quetzal Bio Region Council has released these records for public viewing.  Read the stories from the record keepers from numerous tribes from North America to South America.</Text>
-            <TouchableOpacity style={styles.button} onPress={() => subscribe() }>
-                <Text style={styles.buttonText}>Subscribe Today</Text>
-            </TouchableOpacity>
-            <Text style={styles.secondSide}>
-                75% of proceeds go to the Maya Quetzal Bio Region Council.
-            </Text>
-            <Text style={styles.price}>Only $9.99 per month.</Text>
-          </View>
-    
-        </LinearGradient>
-        <FlatList
-          data={data}
-          renderItem={renderDummyItem}
-          keyExtractor={(item, index) => index.toString()} // Adjust keyExtractor based on your data structure        numColumns={2}
-          numColumns={3}
-          contentContainerStyle={styles.listContainer}
-        />
-      </View>
+        <View  style={styles.container}>
+          <LinearGradient
+            colors={['#6a11cb', '#2575fc']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.bannerContainer}
+          >
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>Major Release</Text>
+              <Text style={styles.subtitle}>The Maya Quetzal Bio Region Council has released these records for viewing via subscription.  Read the stories from the record keepers from numerous tribes from North America to South America.</Text>
+              <StripeProvider
+                publishableKey={stripeKey} // Replace with your actual publishable key
+                urlScheme="com.sacredrecords" // Optional: required for 3D Secure and other payment methods
+                merchantIdentifier="merchant.io.trisummit" // Optional: required for Apple Pay
+              >
+                <TouchableOpacity style={styles.button} onPress={() => subscribe() }>
+                    <Text style={styles.buttonText}>Subscribe Today</Text>
+                </TouchableOpacity>
+              </StripeProvider>
+              <Text style={styles.secondSide}>
+                  75% of proceeds go to the Maya Quetzal Bio Region Council.
+              </Text>
+              <Text style={styles.price}>Only $9.99 per month.</Text>
+            </View>
+      
+          </LinearGradient>
+          <FlatList
+            data={data}
+            renderItem={renderDummyItem}
+            keyExtractor={(item, index) => index.toString()} // Adjust keyExtractor based on your data structure        numColumns={2}
+            numColumns={3}
+            contentContainerStyle={styles.listContainer}
+          />
+        </View>
     );
 
   } else {
@@ -305,6 +631,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
     marginRight: 10,
+
   },
   buttonText: {
     color: '#333',
@@ -315,6 +642,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#e0e0e0',
     marginBottom: 10,
+    marginTop: 10,
   },
   price: {
     fontSize: 16,

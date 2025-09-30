@@ -3,23 +3,24 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext } from '.././context/GoogleAuthContext';
-import LoginScreenComponent from './LoginScreenComponent.jsx';
+import { GoogleAuthContext, refreshJwtToken } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
-import { Bookmark } from "react-native-feather";
+import { ChevronRight } from "react-native-feather";
 
 
-const BookmarksScreenComponent = ( {route} ) => {
+
+const QzChapterScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-    
-  const {  refreshJwtToken, setJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
+  const {  setJwtToken, refreshJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
+  const { id } = route.params;
+  const { title } = route.params;
   const isIOS = ( Platform.OS === 'ios' );
   let serverUrl = Environment.NODE_SERVER_URL;
   if(isIOS) {
@@ -27,37 +28,33 @@ const BookmarksScreenComponent = ( {route} ) => {
   }
 
 
+
   const renderItem = ({ item }) => {
-    //console.log(item);
     return(
       <TouchableOpacity
             style={styles.listItem}
             onPress={( ) => {
               // Handle navigation to the chapter text
-              navigation.navigate('Bookshelf', {
-                    screen: 'ChapterContent',
-                    params: { 
-                      id: item.chapterId,
-                      title: item.chapterTitle,
-                      bookId: item.bookId,
-                      fetchBookmark: "yes"
-                    },
-                  });
+               navigation.navigate('ChapterContent', {
+                       id: item.id,
+                       title: item.title,
+                       bookId: item.parent,
+                       fetchBookmark: "no",
+                   });
             }}
           >
-        <Bookmark  stroke="black" fill="#fff" width={22} height={22} />
         <View style={styles.textContainer}>
-          <Text style={styles.chapterTitle}>{item.bookTitle}</Text>
-          <Text style={styles.chapterSubtitle}>{item.chapterTitle}</Text>
+          <Text style={styles.chapterTitle}>{item.title}</Text>
+          <Text style={styles.chapterSubtitle}>{item.subTitle}</Text>
         </View>
+        <ChevronRight stroke="black" fill="#fff" width={22} height={22} />
       </TouchableOpacity>
     );
   }
-  
 
   //let newEndpoint = apiEndpoint + "?parent=" + id;
   const fetchData = async () => {
-    const  apiEndpoint = serverUrl + "/bookmarks/getBookmarks"; // Example endpoint
+    const  apiEndpoint = serverUrl + "/chapters/chapters?parent=" + id; // Example endpoint
     const myJwtToken = await retrieveJwtToken();
     try {
       const response = await fetch(apiEndpoint, {
@@ -72,7 +69,6 @@ const BookmarksScreenComponent = ( {route} ) => {
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
             setJwtToken(tokenRefreshObj.jwtToken);
             await saveJwtToken(tokenRefreshObj.jwtToken);
-             
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
@@ -81,12 +77,11 @@ const BookmarksScreenComponent = ( {route} ) => {
         }
       } else {
         const json = await response.json();
-        console.log("bookmarks data");
-        console.log(json);
+        console.log("error on ChaptersScreenComponent");
         setData(json);
-      }      
+      }
     } catch (error) {
-      console.log("Error in BookmarkScreenComponent");
+      console.log("Error");
       console.log(error);
       setError(error);
     } finally {
@@ -96,11 +91,16 @@ const BookmarksScreenComponent = ( {route} ) => {
 
   useFocusEffect(
     React.useCallback(() => {
+      navigation.setOptions({
+          title: title,
+      });
+
       fetchData();
       return () => {
       };
     }, [])
   );
+
 
   if (loading) {
     return (
@@ -119,7 +119,6 @@ const BookmarksScreenComponent = ( {route} ) => {
     );
   }
 
-
   return (
     <View style={styles.container}>
       <FlatList
@@ -130,7 +129,8 @@ const BookmarksScreenComponent = ( {route} ) => {
         contentContainerStyle={styles.listContainer}
       />
     </View>
-  );    
+  );
+    
 };
 
 const styles = StyleSheet.create({
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    paddingLeft: 20,
   },
   chapterTitle: {
     fontSize: 18,
@@ -174,9 +173,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
-  bookmarkContainer: {
-    paddingRight: 10,
-  }
 });
 
-export default BookmarksScreenComponent;
+export default QzChapterScreenComponent;

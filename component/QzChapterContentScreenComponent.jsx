@@ -11,7 +11,7 @@ import { useI18n } from '.././context/I18nContext';
 
  
 
-const ChapterContentScreenComponent = ( {route}) => {
+const QzChapterContentScreenComponent = ( {route}) => {
 
   const { language, setLanguage, translate } = useI18n();
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
@@ -447,4 +447,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChapterContentScreenComponent;
+export default QzChapterContentScreenComponent;

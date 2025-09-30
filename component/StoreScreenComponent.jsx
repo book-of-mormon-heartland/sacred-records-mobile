@@ -13,7 +13,7 @@ const StoreScreenComponent = () => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { setJwtToken, jwtToken, refreshToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const {refreshJwtToken, setJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,43 +51,37 @@ const StoreScreenComponent = () => {
     );
   }
 
-  useEffect(() => {
-    if (jwtToken) {
-      fetchData();
-    }
-  }, [jwtToken]); 
-
-
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/populateStore"; // Example endpoint
-    console.log("In Populate Store fetch data");
-
+    const myJwtToken = await retrieveJwtToken();
     try {
       const response = await fetch(apiEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        //console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
+            await saveJwtToken(tokenRefreshObj.jwtToken);
             
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
+            await deleteJwtToken();
           }
         }
       } else {
         const json = await response.json();
         setData(json);
+        console.log("fetched store data");
+        console.log(json);
       }
     } catch (error) {
-      console.log("Error");
+      console.log("Error in StoreScreenComponent");
       console.log(error);
       setError(error);
     } finally {

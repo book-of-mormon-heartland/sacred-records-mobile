@@ -5,7 +5,7 @@ var Environment = require('.././context/environment.ts');
 import { GoogleAuthContext } from '.././context/GoogleAuthContext';
 import { useI18n } from '.././context/I18nContext'; 
 import { useNavigation, navigate } from '@react-navigation/native';
-import { StripeProvider, presentPaymentSheet, initPaymentSheet, getClientSecretParams } from '@stripe/stripe-react-native';
+import { StripeProvider, presentPaymentSheet, initPaymentSheet, CardField, useStripe } from '@stripe/stripe-react-native';
 
 
 
@@ -13,7 +13,7 @@ const ItemReviewScreenComponent = ( {route} ) => {
 
   const { language, setLanguage, translate } = useI18n();
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
-  const {  setJwtToken, jwtToken, refreshJwtToken, userProfile } = useContext(GoogleAuthContext);
+  const {  refreshJwtToken, setJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken, userProfile } = useContext(GoogleAuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
@@ -41,15 +41,7 @@ const ItemReviewScreenComponent = ( {route} ) => {
 
 
 
-  useEffect(() => {
-    if (jwtToken) {
-      fetchData();
-    }
-  }, [jwtToken]); 
-
-
   const applyDiscount = () => {
-    console.log("Apply discount");
     if(inputDiscountCode.toLowerCase() === discountCode.toLowerCase() ) {
       console.log("They are a match.  Apply the Discount");
       setBookPrice(discountPrice);
@@ -61,13 +53,9 @@ const ItemReviewScreenComponent = ( {route} ) => {
   }
  
   const addToBookshelf = async () => {
-    console.log("Purchasing");
     const response = await createPaymentIntent({
       amount: Math.floor(bookPrice),
     });
-    console.log("paymentIntent follows");
-    console.log(response.client_secret);
-    console.log(userProfile.name);
    // 2. Initialize the Payment sheet
     const { error: paymentSheetError } = await initPaymentSheet({
       merchantDisplayName: 'Sacred Records',
@@ -82,9 +70,7 @@ const ItemReviewScreenComponent = ( {route} ) => {
       return;
     }
     // 3. Present the Payment Sheet from Stripe
-    console.log("about the presentPaymentSheet");
     const { error: paymentError } = await presentPaymentSheet();
-    console.log("now checking for payment Error")
     if (paymentError) {
       Alert.alert(`Error code: ${paymentError.code}`, paymentError.message);
       return;
@@ -95,11 +81,13 @@ const ItemReviewScreenComponent = ( {route} ) => {
 
   const createPaymentIntent = async () => {
     try {
+        const myJwtToken = await retrieveJwtToken();
         const response = await fetch(serverUrl + '/payments/intent', {
+          
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${jwtToken}`
+              'Authorization': `Bearer ${myJwtToken}`
             },
             body: JSON.stringify({ amount: Math.floor(bookPrice) }),
         });
@@ -109,19 +97,20 @@ const ItemReviewScreenComponent = ( {route} ) => {
         const paymentIntent = await response.json();
         return paymentIntent;
     } catch (err) {
+      console.log("Error in ItemReviewScreenComponent onCreatePaymentIntent")
       console.log(err);
       return (err);
     }
   };
 
   const onCreateOrder = async() => {
-    console.log("Lets now make the rest call to the server to announce the purchase with details.");
     try {
+      const myJwtToken =  await retrieveJwtToken();
       const response = await fetch(serverUrl + '/payments/createOrder', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken}`
+            'Authorization': `Bearer ${myJwtToken}`
           },
           body: JSON.stringify({ 
             id: bookId,
@@ -134,17 +123,14 @@ const ItemReviewScreenComponent = ( {route} ) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const createdOrder = await response.json();
-  
-      // navigate to the Bookshelf
-      //console.log("createdOrder");
-      //console.log(createdOrder);
-
+ 
       if(createdOrder.message == "success") {
         // lets navigate
         navigation.navigate('Bookshelf', { });
       }
 
     } catch (err) {
+      console.log("Error in ItemReviewScreenComponent onCreateOrder")
       console.log(err);
       return (err);
     } 
@@ -154,32 +140,30 @@ const ItemReviewScreenComponent = ( {route} ) => {
   const fetchData = async () => {
     const  apiEndpoint = serverUrl + "/books/bookForReview"; // Example endpoint
     let newEndpoint = apiEndpoint + "?id=" + id;
+    const myJwtToken = await retrieveJwtToken();
 
     try {
       const response = await fetch(newEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        //console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            console.log("Maybe consider fetchData()");
-            
+            saveJwtToken(tokenRefreshObj.jwtToken);
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
+            deleteJwtToken();
           }
         }
       } else {
         const json = await response.json();
         let myBook = json[0];
-        console.log(myBook);
         setBookId(myBook.id);
         setBookTitle(myBook.title);
         setBookSubtitle(myBook.subTitle);
@@ -192,7 +176,7 @@ const ItemReviewScreenComponent = ( {route} ) => {
         setDiscountPriceText(myBook.discountPriceText);
       }
     } catch (error) {
-      console.log("Error");
+      console.log("Error in ItemReviewScreenComponent");
       console.log(error);
       setError(error);
     } finally {

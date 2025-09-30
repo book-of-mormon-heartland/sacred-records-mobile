@@ -3,81 +3,71 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 var Environment = require('.././context/environment.ts');
 import { ThemeContext } from '.././context/ThemeContext';
-import { GoogleAuthContext } from '.././context/GoogleAuthContext';
+import { GoogleAuthContext, setJwtToken } from '.././context/GoogleAuthContext';
 import { Platform } from 'react-native';
 import { useNavigation, navigate } from '@react-navigation/native';
 
 
-const LibraryScreenComponent = ( ) => {
+const QzBookScreenComponent = ( {route} ) => {
 
   const  envValue = Environment.GOOGLE_IOS_CLIENT_ID;
   const { theme, setTheme, toggleTheme } = useContext(ThemeContext);
-  const { setJwtToken, jwtToken, refreshJwtToken } = useContext(GoogleAuthContext);
+  const { setJwtToken, refreshJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken } = useContext(GoogleAuthContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
+  const { id } = route.params;
+  const { title } = route.params;
   const isIOS = ( Platform.OS === 'ios' );
   let serverUrl = Environment.NODE_SERVER_URL;
   if(isIOS) {
       serverUrl = Environment.IOS_NODE_SERVER_URL;
   }
 
-  
-  useEffect(() => {
-    if (jwtToken) {
-      fetchData();
-    }
-  }, [jwtToken]); 
 
-
-  const handlePress = (id, hasChildBooks, title) => {
-    if(hasChildBooks) {
-      navigation.navigate('Book', {
+  const handlePress = (id, title) => {
+    console.log("this is id " + id)
+    navigation.navigate('Chapters', {
         id: id,
         title: title,
-      });
-    } else {
-      navigation.navigate('Chapters', {
-        id: id,
-        title: title,
-      });
-    }
-
+    });
   };
+
 
   const renderItem = ({ item }) => {
     return(
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => handlePress(item.id, item.hasChildBooks, item.title)}>
+        <TouchableOpacity onPress={() => handlePress(item.id, item.thumbnailTitle)}>
         <Image source={{ uri: item.thumbnail }} style={styles.image} />
         </TouchableOpacity>
-        <Text style={styles.text}>{item.title}</Text>
+        <Text style={styles.text}>{item.thumbnailTitle}</Text>
       </View>
     );
   }
 
 
   const fetchData = async () => {
-    const  apiEndpoint = serverUrl + "/books/Books"; // Example endpoint
+    const  apiEndpoint = serverUrl + "/books/Book"; // Example endpoint
+    const myJwtToken = await retrieveJwtToken();
+    let newEndpoint = apiEndpoint + "?bookid=" + id;
     try {
-      const response = await fetch(apiEndpoint, {
+      const response = await fetch(newEndpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`
+          'Authorization': `Bearer ${myJwtToken}`
         }
       });
       if (!response.ok) {
-        //console.log(response);
         if(response.status === 500) {
           const tokenRefreshObj = await refreshJwtToken();
           if(tokenRefreshObj.message === "valid-token" || tokenRefreshObj.message === "update-jwt-token") {
-            console.log("newTokenValue " + tokenRefreshObj.jwtToken)
             setJwtToken(tokenRefreshObj.jwtToken);
-            
+            await saveJwtToken(tokenRefreshObj.jwtToken);
           } else {
             // its been a week.  Login from this location.
             setJwtToken();
+            await deleteJwtToken();
           }
         }
       } else {
@@ -85,7 +75,7 @@ const LibraryScreenComponent = ( ) => {
         setData(json);
       }
     } catch (error) {
-      console.log("Error");
+      console.log("Error in BookScreenComponent");
       console.log(error);
       setError(error);
     } finally {
@@ -93,15 +83,17 @@ const LibraryScreenComponent = ( ) => {
     }
   };
 
-
-
   useFocusEffect(
     React.useCallback(() => {
+      navigation.setOptions({
+          title: title,
+      });
       fetchData();
       return () => {
       };
     }, [])
   );
+
 
 
   if (loading) {
@@ -169,4 +161,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LibraryScreenComponent;
+export default QzBookScreenComponent;

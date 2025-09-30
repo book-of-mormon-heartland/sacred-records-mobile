@@ -2,7 +2,8 @@ import { createContext, useState } from  "react";
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
 var Environment = require('./environment.ts');
 import { Platform } from 'react-native';
-import { useI18n } from '.././context/I18nContext'; 
+import { useI18n } from '.././context/I18nContext';
+import * as Keychain from 'react-native-keychain'; 
 
 
 export const GoogleAuthContext = createContext("");
@@ -19,6 +20,43 @@ export const GoogleAuthProvider = ({ children }) => {
     let serverUrl = Environment.NODE_SERVER_URL;
     if(isIOS) {
         serverUrl = Environment.IOS_NODE_SERVER_URL;
+    }
+
+    const saveJwtToken = async(token) => {
+        try {
+            // You can use a static string like 'jwtToken' for the username
+            // or a user-specific identifier if needed.
+            await Keychain.setGenericPassword('jwtToken', token);
+            console.log('JWT token saved successfully!');
+        } catch (error) {
+            console.error('Error saving JWT token:', error);
+        }
+    }
+
+    const retrieveJwtToken = async() => {
+        try {
+            const credentials = await Keychain.getGenericPassword();
+            if (credentials) {
+                //console.log('JWT token retrieved successfully:', credentials.password);
+                
+                return credentials.password; // This is your JWT token
+            } else {
+            console.log('No JWT token found.');
+            return null;
+            }
+        } catch (error) {
+            console.error('Error retrieving JWT token:', error);
+            return null;
+        }
+    }
+
+    const deleteJwtToken = async() => {
+        try {
+            await Keychain.resetGenericPassword();
+            console.log('JWT token deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting JWT token:', error);
+        }
     }
 
     const refreshJwtToken = async () => {
@@ -68,8 +106,11 @@ export const GoogleAuthProvider = ({ children }) => {
                 let idToken = response.data.idToken;
 
                 // from here we make calls to server to authenticate to the rest server.
+                
                 try {
-                    const postResponse = await fetch(serverUrl + "/authentication/googlelogin", {
+                    console.log(serverUrl + "/authentication/googleLogin");
+
+                    const postResponse = await fetch(serverUrl + "/authentication/googleLogin", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -77,6 +118,7 @@ export const GoogleAuthProvider = ({ children }) => {
                         body: JSON.stringify({ token: idToken, user: user }),
                     });
                     if (!postResponse.ok) {
+                        console.log("Response not ok");
                         throw new Error(`HTTP error! status: ${postResponse.status}`);
                     }
                     const responseData = await postResponse.json();
@@ -88,15 +130,19 @@ export const GoogleAuthProvider = ({ children }) => {
                     }
 
                     if(obj?.jwtToken) {
+                        console.log("Next is the signIn jwt token value");
+                        console.log(obj.jwtToken);
                         setJwtToken(obj.jwtToken || "");
                         setRefreshToken(obj.refreshToken || "");
                         setGoogleMessage("Logged In Successfully");
                         setUserProfile(user);
                         setUserToken(idToken);
+                        saveJwtToken(obj.jwtToken);
                     } else {
                         console.log("No JWT Token returned from server.");
                     }
                 } catch (error) {
+                    console.log("We got some error here.")
                     console.error('Error:', error);
                 }
             } else {
@@ -106,6 +152,7 @@ export const GoogleAuthProvider = ({ children }) => {
                 setUserToken("");
                 setJwtToken("");
                 setRefreshToken("");
+                deleteJwtToken();
             }
         } catch (error) {
             console.log("Error: ", error );
@@ -116,6 +163,7 @@ export const GoogleAuthProvider = ({ children }) => {
                 setUserToken("");
                 setJwtToken("");
                 setRefreshToken("");
+                deleteJwtToken();
 
             } else if (error.code === statusCodes.IN_PROGRESS) {
                 setGoogleMessage('Sign in is in progress already');
@@ -123,18 +171,21 @@ export const GoogleAuthProvider = ({ children }) => {
                 setUserToken("");
                 setJwtToken("");
                 setRefreshToken("");
+                deleteJwtToken();
             } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
                 setGoogleMessage('Play services not available or outdated');
                 setUserProfile(undefined);
                 setUserToken("");
                 setJwtToken("");
                 setRefreshToken("");
+                deleteJwtToken();
             } else {
                 setGoogleMessage(`Some other error happened: ${error.message}`);
                 setUserProfile(undefined);
                 setUserToken("");
                 setJwtToken("");
                 setRefreshToken("");
+                deleteJwtToken();
             }
         }
     };
@@ -151,6 +202,8 @@ export const GoogleAuthProvider = ({ children }) => {
             setUserToken("");
             setJwtToken("");
             setRefreshToken("");
+            deleteJwtToken();
+
             // need to do GoogleSignin.disconnect also.
         } catch (error) {
             console.log('Google Sign-Out Error: ', error);
@@ -158,7 +211,7 @@ export const GoogleAuthProvider = ({ children }) => {
     }
 
     return (
-        <GoogleAuthContext.Provider value={{ signIn, signOut, googleMessage, setGoogleMessage, userToken, userProfile, jwtToken, refreshJwtToken, setJwtToken }}>
+        <GoogleAuthContext.Provider value={{ signIn, signOut, googleMessage, setGoogleMessage, userToken, userProfile, jwtToken, refreshJwtToken, setJwtToken, saveJwtToken, retrieveJwtToken, deleteJwtToken }}>
             { children }
         </GoogleAuthContext.Provider>
     );

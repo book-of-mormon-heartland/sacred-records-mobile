@@ -139,13 +139,3 @@ const styles = StyleSheet.create({
 
 export default LoginScreenComponent;
 
-/*
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={() => selectLanguage('en')} activeOpacity={0.7}>
-          <Text style={styles.buttonText}>English</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => selectLanguage('es')} activeOpacity={0.7}>
-          <Text style={styles.buttonText}>Español</Text>
-        </TouchableOpacity>
-      </View>
-*/
